@@ -501,13 +501,17 @@ def checkName(number, splitParts, raw):
             print(str(number) + " is looking for team name: " + str(searchingName))
             found = False
             possible = ""
-            for i in range(len(allTeams)):
-                try:
-                    if fuzz.ratio(allTeams[i]["team_name_short"].lower().replace(" ",""), str(searchingName)) >= 75:
-                        possible += str(allTeams[i]["team_key"]) + ", "
-                        found = True
-                except AttributeError:
-                    continue
+            if searchingName != "robotics" and searchingName != "robots" and searchingName != "bots" and searchingName != "robotic":
+                for i in range(len(allTeams)):
+                    try:
+                        if fuzz.ratio(allTeams[i]["team_name_short"].lower().replace(" ",""), str(searchingName)) >= 75:
+                            possible += str(allTeams[i]["team_key"]) + ", "
+                            found = True
+                    except AttributeError:
+                        continue
+            else:
+                sendText(number, "That is an invalid search word. (EC3 - Overflow)")
+                return True
             if found == False:
                 sendText(number, "That team name was not found. Please try again")
             elif found == True:
@@ -515,7 +519,7 @@ def checkName(number, splitParts, raw):
                     searchingName = str(raw.split(":", 1)[1])
                 else:
                     searchingName = str(raw.split(" ", 1)[1])
-                sendText(number, str(searchingName) + " could be team " + str(possible[:-2]))
+                sendText(number, formatResp(str(searchingName) + " could be team " + str(possible[:-2]), "", 0))
         else:
             sendText(number, "That is not a valid team name")
         return True
@@ -529,6 +533,8 @@ def formatResp(strOne, strTwo, allFlag):  # Formats end response to send to user
         totalStr = totalStr[:-1]
     if len(totalStr) >= 160 and allFlag == 1:
         totalStr = totalStr[:157] + "..."
+    if len(totalStr) > 1000:
+        totalStr = totalStr[:950] + "... [Information truncated due to being over 1000 characters]"
     return totalStr
 
 
@@ -1643,7 +1649,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             teleOpSum = 0
             filledEvents = 0
             for i in range(len(eventsList)):
-                if "2019-01-26" in eventsList[i]["start_date"]:
+                if "2019-02-02" in eventsList[i]["start_date"]:
                     print(eventsList[i]["event_name"])
                     matchr = requests.get(apiURL + "event/" + eventsList[i]["event_key"] + "/matches",
                                           headers=apiHeaders)
