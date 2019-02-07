@@ -1623,30 +1623,8 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
 def metricCount(action):  # Code to log metrics
     with open("metric.json", "r") as read_file:
         data = json.load(read_file)
-    if action == 1:
-        data["textsRec"] += 1
-    if action == 2:
-        data["locGet"] += 1
-    if action == 3:
-        data["nameGet"] += 1
-    if action == 4:
-        data["yearGet"] += 1
-    if action == 5:
-        data["webGet"] += 1
-    if action == 6:
-        data["eveGet"] += 1
-    if action == 7:
-        data["awardGet"] += 1
-    if action == 8:
-        data["helpGet"] += 1
-    if action == 9:
-        data["avgTotalGet"] += 1
-    if action == 10:
-        data["avgGet"] += 1
-    if action == 11:
-        data["matchGet"] += 1
-    if action == 12:
-        data["livesSent"] += 1
+    metricList = ["textsRec", "locGet","nameGet","yearGet","webGet","eveGet","awardGet","helpGet","avgTotalGet","matchGet","livesSent"]
+    data[str(metricList[action-1])] += 1
     with open("metric.json", "w") as write_file:
         json.dump(data, write_file)
 
