@@ -459,10 +459,10 @@ def checkTeam(msg, number):  # Code run upon thread starting
             metricCount(9)
             return
 
-        if any([advertsCheck(number, splitParts),
-                sendHelp(number, splitParts, msg),
-                addLive(number, splitParts),
-                checkName(number, splitParts, msg)]):
+        if advertsCheck(number, splitParts) or
+                sendHelp(number, splitParts, msg) or
+                addLive(number, splitParts) or
+                checkName(number, splitParts, msg):
             return
         
         if msg.replace(" ", "").isdigit():  # Checks for just team #
