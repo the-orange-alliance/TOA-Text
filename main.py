@@ -459,9 +459,9 @@ def checkTeam(msg, number):  # Code run upon thread starting
             metricCount(9)
             return
 
-        if advertsCheck(number, splitParts) or
-                sendHelp(number, splitParts, msg) or
-                addLive(number, splitParts) or
+        if advertsCheck(number, splitParts) or \
+                sendHelp(number, splitParts, msg) or \
+                addLive(number, splitParts) or \
                 checkName(number, splitParts, msg):
             return
         
