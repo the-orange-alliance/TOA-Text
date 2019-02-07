@@ -27,16 +27,16 @@ adminList = []
 # numbers who get pinged upon use
 pingList = []
 
-#numbers who recieve help texts
+# numbers who recieve help texts
 helpNumList = []
 
-#all Teams in first
+# all Teams in first
 allTeams = []
 
 twilioAccountID = ""
 twilioAuth = ""
 
-#global val for average comp last weekend
+# global val for average comp last weekend
 autoSum = 0
 teleOpSum = 0
 
@@ -50,7 +50,7 @@ liveScoreRunningTwo = False
 liveMatchKeyTwo = ""
 liveScoreListTwo = []
 
-liveScoreRunningThree= False
+liveScoreRunningThree = False
 liveMatchKeyThree = ""
 liveScoreListThree = []
 
@@ -73,27 +73,32 @@ class liveScoringThread(threading.Thread):  # Thread created for live scoring ch
         threading.Thread.__init__(self)
         self.name = name
         self.startingUser = startingUser
+
     def run(self):
         print("Starting live scoring")
         checkLiveScoring()
         sendText(self.startingUser, "Live scoring has shut down successfully")
         print("Live scoring ended")
 
+
 class liveScoringThreadTwo(threading.Thread):  # Thread created for live scoring channel 2
     def __init__(self, name, startingUser):
         threading.Thread.__init__(self)
         self.name = name
         self.startingUser = startingUser
+
     def run(self):
         print("Starting live scoring Two")
         checkLiveScoringTwo()
         sendText(self.startingUser, "Live scoring 2 has shut down successfully")
         print("Live scoring ended Two")
 
+
 class liveScoringThreadThree(threading.Thread):  # Thread created for live scoring channel 3
     def __init__(self, name):
         threading.Thread.__init__(self)
         self.name = name
+
     def run(self):
         print("Starting live scoring Three")
         checkLiveScoringThree()
@@ -160,12 +165,15 @@ admin_command_descriptions = {
     "sendhelp": "responds to a sendhelp user (sendhelp:number(with +1):msg",
     "updateavg": "updates average score to previous weekends"
 }
+
+
 def respond_by_command(descriptions, splitParts, number):
     for command, description in descriptions.items():
         if command in splitParts:
             sendText(number, command + " - " + description)
             return True
     return False
+
 
 def checkHelp(splitParts, number):  # Code to check if help was requested
     defaultSend = 0
@@ -181,11 +189,13 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             sendText(number,
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo")
-            sendText(number, "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
+            sendText(number,
+                     "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
             if number in adminList:
                 sendText(number,
                          "Available admin requests are: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, toggleLive, updateAdmins")
-            sendText(number, "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
+            sendText(number,
+                     "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
         return True
     elif "about" in splitParts:
         sendText(number,
@@ -216,10 +226,12 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
     else:
         return False
 
+
 def advertsCheck(number, splitParts):
     '''if "robotlib" in splitParts:
     sendText(number, "Need a library for more effectively programming FTC robots? Go to: https://github.com/jdroids/robotlib")
     return True'''
+
 
 def avgPoints(number, splitParts):  # Average total points
     if "avgtotalscore" in splitParts or "avgtotalpoints" in splitParts:
@@ -229,7 +241,7 @@ def avgPoints(number, splitParts):  # Average total points
         return True
 
 
-def addLive(number, splitParts): #Adds users to live alert threads One, Two, or Three
+def addLive(number, splitParts):  # Adds users to live alert threads One, Two, or Three
     if "addlive" in splitParts:
         print(str(number) + " Used AddLive")
         if number in liveScoreList:
@@ -280,7 +292,7 @@ def addLive(number, splitParts): #Adds users to live alert threads One, Two, or 
         return True
     if "getscore" in splitParts and number in liveScoreList:
         print(str(number) + " Used getscore")
-        sendText(number,"Your current score is: " + str(liveScoreScores[liveScoreList.index(str(number))]))
+        sendText(number, "Your current score is: " + str(liveScoreScores[liveScoreList.index(str(number))]))
         return True
     elif "getscore" in splitParts:
         print(str(number) + " Used getscore")
@@ -290,7 +302,12 @@ def addLive(number, splitParts): #Adds users to live alert threads One, Two, or 
 
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
-    errorList = ["Whoops. Someone must've forgotten to use a grounding strap!","This is really grinding my gears","I must be a swerve drive, because apparently I never work!","Hey there! Thats not very nice of you!","Just remember, goBILDA or go home. (EC1)","... Bestrix.","Hold your horses, that's not very GP of you","Try again. The delivery robot strafed the wrong direction", "I'm still waiting... and waiting... and waiting"]
+    errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
+                 "I must be a swerve drive, because apparently I never work!", "Hey there! Thats not very nice of you!",
+                 "Just remember, goBILDA or go home. (EC1)", "... Bestrix.",
+                 "Hold your horses, that's not very GP of you",
+                 "Try again. The delivery robot strafed the wrong direction",
+                 "I'm still waiting... and waiting... and waiting"]
     randomNum = rand.randint(0, len(errorList))
     errorMsgText = errorList[randomNum]
     if error == 'invalTeam':  # Missing Team Arguement
@@ -301,7 +318,7 @@ def returnErrorMsg(error, number):  # Error messages
     sendText(number, errorMsgText)
 
 
-def parseRequest(number,userRequest):  # Turns user request into usable data
+def parseRequest(number, userRequest):  # Turns user request into usable data
     # requestParts = userRequest.split(',')
     merge_expression_groups = [
         ("send", "help"),
@@ -342,6 +359,7 @@ def parseRequest(number,userRequest):  # Turns user request into usable data
     # print(splitParts)
     return splitParts
 
+
 def checkName(number, splitParts, raw):
     if "searchtn" in splitParts:
         if not splitParts[splitParts.index("searchtn") + 1].isdigit() and "exactname" in splitParts:
@@ -354,7 +372,7 @@ def checkName(number, splitParts, raw):
             possible = ""
             for i in range(len(allTeams)):
                 try:
-                    if allTeams[i]["team_name_short"].lower().replace(" ","") == searchingName:
+                    if allTeams[i]["team_name_short"].lower().replace(" ", "") == searchingName:
                         possible += str(allTeams[i]["team_key"]) + ", "
                         found = True
                 except AttributeError:
@@ -378,7 +396,8 @@ def checkName(number, splitParts, raw):
             if searchingName != "robotics" and searchingName != "robots" and searchingName != "bots" and searchingName != "robotic":
                 for i in range(len(allTeams)):
                     try:
-                        if fuzz.ratio(allTeams[i]["team_name_short"].lower().replace(" ",""), str(searchingName)) >= 75:
+                        if fuzz.ratio(allTeams[i]["team_name_short"].lower().replace(" ", ""),
+                                      str(searchingName)) >= 75:
                             possible += str(allTeams[i]["team_key"]) + ", "
                             found = True
                     except AttributeError:
@@ -398,6 +417,7 @@ def checkName(number, splitParts, raw):
             sendText(number, "That is not a valid team name")
         return True
 
+
 def formatResp(strOne, strTwo, allFlag):  # Formats end response to send to user [Truncates and removes end characters]
     # str(basicInfo + advancedInfo).replace(",;",";")[:-2]
     totalStr = strOne + strTwo
@@ -412,7 +432,7 @@ def formatResp(strOne, strTwo, allFlag):  # Formats end response to send to user
     return totalStr
 
 
-def sendHelp(number, splitParts, rawRequest): #Sends message to any admin in help list
+def sendHelp(number, splitParts, rawRequest):  # Sends message to any admin in help list
     if "sendhelp" in splitParts:
         bannedNums = []
         with open('bannedNumbers.txt', 'r') as banFile:
@@ -452,7 +472,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
         return
     if checkAdminMsg(number, splitParts, msg) is True:  # Check if admin request was made
         return
-    if playGames(number,splitParts) is True:
+    if playGames(number, splitParts) is True:
         return
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
@@ -464,7 +484,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
                 addLive(number, splitParts) or \
                 checkName(number, splitParts, msg):
             return
-        
+
         if msg.replace(" ", "").isdigit():  # Checks for just team #
             checkOnlyTeam(msg, number)
         else:
@@ -491,7 +511,8 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
         sendText(number, "Invalid Team Number")
         return False
 
-def playGames(number, splitParts): #plays flip a coin or RPS
+
+def playGames(number, splitParts):  # plays flip a coin or RPS
     if "flip" in splitParts:
         print(str(number) + " Used Flip")
         results = ["Heads!", "Tails!"]
@@ -508,9 +529,9 @@ def playGames(number, splitParts): #plays flip a coin or RPS
         if userChoice is None:
             sendText(number, "Send rps with 'rock', 'paper', or 'scissors' to play")
             return True
-        
+
         print(str(number) + " Used RPS")
-        #Rock = 0, Paper = 1, Scissors = 2
+        # Rock = 0, Paper = 1, Scissors = 2
         # 0 beats 2, 1 beats 0, 2 beats 1
         response = "%s (you) vs %s (computer) - " % (expressions[userChoice], expressions[computerChoice])
         result = None
@@ -521,9 +542,10 @@ def playGames(number, splitParts): #plays flip a coin or RPS
             result = "You win"
         else:
             result = "You lose"
-            
+
         sendText(number, response + result)
         return True
+
 
 def checkTeamFlags(splitParts, number):  # Code for if request has flags
     allFlag = 0
@@ -561,7 +583,7 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
         return False
 
 
-def checkLiveScoring(): #live scoring channel 1
+def checkLiveScoring():  # live scoring channel 1
     global liveMatchKey
     global liveScoreList
     global liveScoreRunning
@@ -570,7 +592,7 @@ def checkLiveScoring(): #live scoring channel 1
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
-    while liveScoreRunning: #Keeps it running if no match schedule has been uploaded
+    while liveScoreRunning:  # Keeps it running if no match schedule has been uploaded
         time.sleep(5)
         r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
                          headers=apiHeaders)
@@ -583,13 +605,15 @@ def checkLiveScoring(): #live scoring channel 1
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             elif currentMatch < 100:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q0" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q0" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKey) + "-Q0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
                 if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
                     redOne = ""
@@ -627,7 +651,8 @@ def checkLiveScoring(): #live scoring channel 1
                                 blueOneNext = nextPersonR.json()[a]["team_key"]
                             elif nextPersonR.json()[a]["station"] == 22:
                                 blueTwoNext = nextPersonR.json()[a]["team_key"]
-                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
+                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                            redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
                         if currentMatch + 2 < 10:
                             nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(
                                 currentMatch + 2) + "-1/participants", headers=apiHeaders)
@@ -647,20 +672,25 @@ def checkLiveScoring(): #live scoring channel 1
                                 blueOneExtra = nextPersonR.json()[a]["team_key"]
                             elif nextPersonR.json()[a]["station"] == 22:
                                 blueTwoExtra = nextPersonR.json()[a]["team_key"]
-                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
+                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                            redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
+                            blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
                     except KeyError:
                         print("KeyError")
                         continue
                     for i in liveScoreList:
                         metricCount(12)
-                        if liveScorePredict[liveScoreList.index(i)] == 1 and r.json()[0]["red_score"] > r.json()[0]["blue_score"]:
+                        if liveScorePredict[liveScoreList.index(i)] == 1 and r.json()[0]["red_score"] > r.json()[0][
+                            "blue_score"]:
                             liveScoreScores[liveScoreList.index(i)] += 1
                             liveScorePredict[liveScoreList.index(i)] = 0
-                        elif liveScorePredict[liveScoreList.index(i)] == 2 and r.json()[0]["red_score"] < r.json()[0]["blue_score"]:
+                        elif liveScorePredict[liveScoreList.index(i)] == 2 and r.json()[0]["red_score"] < r.json()[0][
+                            "blue_score"]:
                             liveScoreScores[liveScoreList.index(i)] += 1
                             liveScorePredict[liveScoreList.index(i)] = 0
                         sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) +"]")
+                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         sendText(i, queuingStr)
                     currentMatch += 1
         except KeyError:
@@ -677,13 +707,15 @@ def checkLiveScoring(): #live scoring channel 1
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-E00" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKey) + "-E00" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKey) + "-E00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             elif currentMatch < 100:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-E0" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKey) + "-E0" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKey) + "-E0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
                 if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
                     redOne = ""
@@ -708,7 +740,8 @@ def checkLiveScoring(): #live scoring channel 1
                     for i in liveScoreList:
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) +"]")
+                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         # Send score of prev match
                         # Get next 2 match competitors
                         # Get prev match competitors
@@ -723,14 +756,15 @@ def checkLiveScoring(): #live scoring channel 1
     liveScoreScores = []
     liveScoreRunning = False
 
-def checkLiveScoringTwo():#live scoring channel 2
+
+def checkLiveScoringTwo():  # live scoring channel 2
     global liveMatchKeyTwo
     global liveScoreListTwo
     global liveScoreRunningTwo
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
-    while liveScoreRunningTwo: #Keeps it running if no match schedule has been uploaded
+    while liveScoreRunningTwo:  # Keeps it running if no match schedule has been uploaded
         time.sleep(5)
         r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
                          headers=apiHeaders)
@@ -743,13 +777,15 @@ def checkLiveScoringTwo():#live scoring channel 2
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             elif currentMatch < 100:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q0" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q0" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyTwo) + "-Q0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
                 if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
                     redOne = ""
@@ -787,7 +823,8 @@ def checkLiveScoringTwo():#live scoring channel 2
                                 blueOneNext = nextPersonR.json()[a]["team_key"]
                             elif nextPersonR.json()[a]["station"] == 22:
                                 blueTwoNext = nextPersonR.json()[a]["team_key"]
-                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
+                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                            redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
                         if currentMatch + 2 < 10:
                             nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(
                                 currentMatch + 2) + "-1/participants", headers=apiHeaders)
@@ -807,14 +844,17 @@ def checkLiveScoringTwo():#live scoring channel 2
                                 blueOneExtra = nextPersonR.json()[a]["team_key"]
                             elif nextPersonR.json()[a]["station"] == 22:
                                 blueTwoExtra = nextPersonR.json()[a]["team_key"]
-                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
+                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                            redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
+                            blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
                     except KeyError:
                         print("KeyError")
                         continue
                     for i in liveScoreListTwo:
                         metricCount(12)
                         sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) +"]")
+                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         sendText(i, queuingStr)
                     currentMatch += 1
         except KeyError:
@@ -831,13 +871,15 @@ def checkLiveScoringTwo():#live scoring channel 2
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-E00" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-E00" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyTwo) + "-E00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             elif currentMatch < 100:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-E0" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-E0" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyTwo) + "-E0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
                 if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
                     redOne = ""
@@ -862,7 +904,8 @@ def checkLiveScoringTwo():#live scoring channel 2
                     for i in liveScoreListTwo:
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) +"]")
+                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         # Send score of prev match
                         # Get next 2 match competitors
                         # Get prev match competitors
@@ -875,14 +918,15 @@ def checkLiveScoringTwo():#live scoring channel 2
     liveScoreListTwo = []
     liveScoreRunningTwo = False
 
-def checkLiveScoringThree(): #live scoring channel 3
+
+def checkLiveScoringThree():  # live scoring channel 3
     global liveMatchKeyThree
     global liveScoreListThree
     global liveScoreRunningThree
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
-    while liveScoreRunningThree: #Keeps it running if no match schedule has been uploaded
+    while liveScoreRunningThree:  # Keeps it running if no match schedule has been uploaded
         time.sleep(5)
         r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
                          headers=apiHeaders)
@@ -895,13 +939,15 @@ def checkLiveScoringThree(): #live scoring channel 3
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             elif currentMatch < 100:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q0" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q0" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyThree) + "-Q0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
                 if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
                     redOne = ""
@@ -939,7 +985,8 @@ def checkLiveScoringThree(): #live scoring channel 3
                                 blueOneNext = nextPersonR.json()[a]["team_key"]
                             elif nextPersonR.json()[a]["station"] == 22:
                                 blueTwoNext = nextPersonR.json()[a]["team_key"]
-                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
+                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                            redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
                         if currentMatch + 2 < 10:
                             nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(
                                 currentMatch + 2) + "-1/participants", headers=apiHeaders)
@@ -959,14 +1006,17 @@ def checkLiveScoringThree(): #live scoring channel 3
                                 blueOneExtra = nextPersonR.json()[a]["team_key"]
                             elif nextPersonR.json()[a]["station"] == 22:
                                 blueTwoExtra = nextPersonR.json()[a]["team_key"]
-                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
+                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                            redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
+                            blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
                     except KeyError:
                         print("KeyError")
                         continue
                     for i in liveScoreListThree:
                         metricCount(12)
                         sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) +"]")
+                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         sendText(i, queuingStr)
                     currentMatch += 1
         except KeyError:
@@ -983,13 +1033,15 @@ def checkLiveScoringThree(): #live scoring channel 3
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-E00" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-E00" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyThree) + "-E00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             elif currentMatch < 100:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-E0" + str(currentMatch) + "-1",
                                  headers=apiHeaders)
-                personR = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-E0" + str(currentMatch) + "-1/participants",
-                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyThree) + "-E0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
             if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
                 if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
                     redOne = ""
@@ -1014,7 +1066,8 @@ def checkLiveScoringThree(): #live scoring channel 3
                     for i in liveScoreListThree:
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) +"]")
+                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         # Send score of prev match
                         # Get next 2 match competitors
                         # Get prev match competitors
@@ -1027,19 +1080,32 @@ def checkLiveScoringThree(): #live scoring channel 3
     liveScoreListThree = []
     liveScoreRunningThree = False
 
+
 def getTeamMatches(number, splitParts):  # Code to view a teams matches
     def redcompileinfo(jsonInfo):
-        redStr = "Auto Score - " + str(jsonInfo[0]["red_auto_score"]) + "; "
-        redStr += "TeleOP Score - " + str(jsonInfo[0]["red_tele_score"]) + "; "
-        redStr += "Endgame Score - " + str(jsonInfo[0]["red_end_score"]) + "; "
-        redStr += "Total Score - " + str(jsonInfo[0]["red_score"]) + "; "
+        redStr = "Auto - " + str(jsonInfo[0]["red_auto_score"]) + "; "
+        redStr += "TeleOP - " + str(jsonInfo[0]["red_tele_score"]) + "; "
+        redStr += "Endgame - " + str(jsonInfo[0]["red_end_score"]) + "; "
+        redStr += "Total - " + str(jsonInfo[0]["red_score"]) + " @ "
+        eventR = requests.get(apiURL + "event/" + str(jsonInfo[0]["event_key"]),
+                              headers=apiHeaders)
+        redStr += eventR.json()[0]["event_name"]
+        if len(redStr) >= 160:
+            redStr = redStr[:155] + "..."
         return redStr
+
     def bluecompileinfo(jsonInfo):
-        blueStr = "Auto Score - " + str(jsonInfo[0]["blue_auto_score"]) + "; "
-        blueStr += "TeleOP Score - " + str(jsonInfo[0]["blue_tele_score"]) + "; "
-        blueStr += "Endgame Score - " + str(jsonInfo[0]["blue_end_score"]) + "; "
-        blueStr += "Total Score - " + str(jsonInfo[0]["blue_score"]) + "; "
+        blueStr = "Auto - " + str(jsonInfo[0]["blue_auto_score"]) + "; "
+        blueStr += "TeleOP - " + str(jsonInfo[0]["blue_tele_score"]) + "; "
+        blueStr += "Endgame - " + str(jsonInfo[0]["blue_end_score"]) + "; "
+        blueStr += "Total - " + str(jsonInfo[0]["blue_score"]) + " @ "
+        eventR = requests.get(apiURL + "event/" + str(jsonInfo[0]["event_key"]),
+                              headers=apiHeaders)
+        blueStr += eventR.json()[0]["event_name"]
+        if len(blueStr) >= 160:
+            blueStr = blueStr[:155] + "..."
         return blueStr
+
     if "matchinfo" in splitParts:
         metricCount(11)
         try:
@@ -1409,7 +1475,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 if "1819" in msg[msg.index("togglelive") + 1]:
                     print("Admin " + str(number) + " used the toggleLive command")
                     if liveScoreRunning:
-                        sendText(number,"You have manually ended live scoring alert thread 1")
+                        sendText(number, "You have manually ended live scoring alert thread 1")
                         liveMatchKey = ""
                         liveScoreList = []
                         liveScorePredict = []
@@ -1417,7 +1483,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                         liveScoreRunning = False
                     elif not liveScoreRunning:
                         liveScoreRunning = True
-                        sendText(number,"You have started live scoring alert thread")
+                        sendText(number, "You have started live scoring alert thread")
                         liveMatchKey = str(msg[msg.index("togglelive") + 1])
                         liveScoreList.append(str(number))
                         liveScorePredict.append(int(0))
@@ -1527,8 +1593,9 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
 def metricCount(action):  # Code to log metrics
     with open("metric.json", "r") as read_file:
         data = json.load(read_file)
-    metricList = ["textsRec", "locGet","nameGet","yearGet","webGet","eveGet","awardGet","helpGet","avgTotalGet","matchGet","livesSent"]
-    data[str(metricList[action-1])] += 1
+    metricList = ["textsRec", "locGet", "nameGet", "yearGet", "webGet", "eveGet", "awardGet", "helpGet", "avgTotalGet",
+                  "matchGet", "livesSent"]
+    data[str(metricList[action - 1])] += 1
     with open("metric.json", "w") as write_file:
         json.dump(data, write_file)
 
@@ -1554,11 +1621,12 @@ def metricTwoGet():  # Retrieves metrics
     metricStr += "Help requests - " + str(data["helpGet"]) + "; "
     metricStr += "TotalAvg reqs - " + str(data["avgTotalGet"]) + "; "
     metricStr += "TeamAvg reqs - " + str(data["avgGet"]) + "; "
-    metricStr += "Match info reqs - " + str(data["matchGet"])  + "; "
+    metricStr += "Match info reqs - " + str(data["matchGet"]) + "; "
     metricStr += "Live Alerts sent - " + str(data["livesSent"])
     return metricStr
 
-def loadAdminList(): #Loads admin numbers off admin.json
+
+def loadAdminList():  # Loads admin numbers off admin.json
     global adminList
     adminList = []
     with open("admin.json", "r") as read_file:
@@ -1567,7 +1635,8 @@ def loadAdminList(): #Loads admin numbers off admin.json
         adminList.append(str(data["fileAdminList"][i]["admin_num"]))
     print(str(adminList))
 
-def loadTwilio(): #Loads Twilio account info off twilio.json
+
+def loadTwilio():  # Loads Twilio account info off twilio.json
     global twilioAuth
     global twilioAccountID
     global apiHeaders
@@ -1579,7 +1648,8 @@ def loadTwilio(): #Loads Twilio account info off twilio.json
                   'X-TOA-KEY': str(data["toaKey"]),
                   'X-Application-Origin': 'TOAText'}
 
-def loadAllTeams(): #Loads Twilio account info off twilio.json
+
+def loadAllTeams():  # Loads Twilio account info off twilio.json
     global allTeams
     print("All teams requested")
     teamsR = requests.get(apiURL + "team/",
@@ -1587,7 +1657,8 @@ def loadAllTeams(): #Loads Twilio account info off twilio.json
     allTeams = teamsR.json()
     print("Recieved all teams")
 
-if __name__ == "__main__": #starts the whole program
+
+if __name__ == "__main__":  # starts the whole program
     print("started")
     loadAdminList()
     loadTwilio()
