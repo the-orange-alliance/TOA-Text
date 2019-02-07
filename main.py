@@ -259,6 +259,10 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
     else:
         return False
 
+def advertsCheck(number, splitParts):
+    '''if "robotlib" in splitParts:
+    sendText(number, "Need a library for more effectively programming FTC robots? Go to: https://github.com/jdroids/robotlib")
+    return True'''
 
 def avgPoints(number, splitParts):  # Average total points
     if "avgtotalscore" in splitParts or "avgtotalpoints" in splitParts:
@@ -329,50 +333,13 @@ def addLive(number, splitParts): #Adds users to live alert threads One, Two, or 
 
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
+    errorList = ["Whoops. Someone must've forgotten to use a grounding strap!","This is really grinding my gears","I must be a swerve drive, because apparently I never work!","Hey there! Thats not very nice of you!","Just remember, goBILDA or go home. (EC1)","... Bestrix.","Hold your horses, that's not very GP of you","Try again. The delivery robot strafed the wrong direction", "I'm still waiting... and waiting... and waiting"]
+    randomNum = rand.randint(0, len(errorList))
+    errorMsgText = errorList[randomNum]
     if error == 'invalTeam':  # Missing Team Arguement
-        randomNum = rand.randint(0, 10)
-        if randomNum == 0:
-            errorMsgText = "Hey there! Thats not very nice of you! (EC1)"
-        if randomNum == 1:
-            errorMsgText = "Just remember, goBILDA or go home. (EC1)"
-        if randomNum == 2:
-            errorMsgText = "... Bestrix. (EC1)"
-        if randomNum == 3:
-            errorMsgText = "Hold your horses, that's not very GP of you (EC1)"
-        if randomNum == 4:
-            errorMsgText = "Try again. The delivery robot strafed the wrong direction (EC1)"
-        if randomNum == 5:
-            errorMsgText = "I'm still waiting... and waiting... and waiting (EC1)"
-        if randomNum == 6:
-            errorMsgText = "We're going cuppo mode(EC1)"
-        if randomNum == 7:
-            errorMsgText = "I must be a swerve drive, because apparently I never work! (EC1)"
-        if randomNum == 8:
-            errorMsgText = "This is really grinding my gears (EC1)"
-        if randomNum == 9:
-            errorMsgText = "Whoops. Someone must've forgotten to use a grounding strap! (EC1)"
+        errorMsgText += " (EC1)"
     if error == 'falseArg':  # Uses only unreal args
-        randomNum = rand.randint(0, 10)
-        if randomNum == 0:
-            errorMsgText = "Hey there! Thats not very nice of you! (EC2)"
-        if randomNum == 1:
-            errorMsgText = "Just remember, goBILDA or go home. (EC2)"
-        if randomNum == 2:
-            errorMsgText = "... Bestrix. (EC2)"
-        if randomNum == 3:
-            errorMsgText = "Hold your horses, that's not very GP of you (EC2)"
-        if randomNum == 4:
-            errorMsgText = "Try again. The delivery robot strafed the wrong direction (EC2)"
-        if randomNum == 5:
-            errorMsgText = "I'm still waiting... and waiting... and waiting (EC2)"
-        if randomNum == 6:
-            errorMsgText = "We're going cuppo mode(EC2)"
-        if randomNum == 7:
-            errorMsgText = "I must be a swerve drive, because apparently I never work! (EC2)"
-        if randomNum == 8:
-            errorMsgText = "This is really grinding my gears (EC2)"
-        if randomNum == 9:
-            errorMsgText = "Whoops. Someone must've forgotten to use a grounding strap! (EC2)"
+        errorMsgText += " (EC2)"
     errorMsgText += "  [For help, text 'helpme' or '?']"
     sendText(number, errorMsgText)
 
@@ -583,6 +550,8 @@ def checkTeam(msg, number):  # Code run upon thread starting
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
             metricCount(9)
+            return
+        if advertsCheck(number, splitParts) is True:
             return
         if sendHelp(number, splitParts, msg) is True:
             return
