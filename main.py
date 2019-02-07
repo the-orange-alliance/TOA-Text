@@ -125,101 +125,58 @@ def sendText(number, msg):  # Code to send outgoing text
     )
 
 
+command_descriptions = {
+    "location": "responds with city and state a team is from",
+    "name": "responds with team name and community/long name",
+    "startYear": "responds with a team's rookie year",
+    "website": "responds with a team's website",
+    "events": "responds with all events a team has participated in during the current season",
+    "awards": "responds with all awards a team has won (current season) and where",
+    "about": "wanna know about TOAText? Use the About Command",
+    "newcmds": "use this to know what features are new to TOAText",
+    "flip": "flips a virtual coin pseudo-randomly",
+    "searchtn": "attempts to search for a team number by team name. searchTN:Rust In Pieces or searchTN exactname Rust In Pieces",
+    "matchinfo": "gives breakdowns on a team's matches. " +
+                 "Use format [team#]:matchInfo:[matchKey] to return details about a match. " +
+                 "Use format [team#]:matchInfo:minMax to return details about their best and worst matches. " +
+                 "Use format [team#]:matchInfo:topThree to return details about their top three matches",
+    "sendhelp": "pings admins in help list with your number and issue",
+    "avgtotalscore": "responds with average auto and teleOp scores for previous weekend",
+    "avgtotalpoints": "responds with average auto and teleOp scores for previous weekend",
+    "addlive": "toggles whether a user is receiving live text notifications for the currently selected game",
+    "checklive": "shows what events are currently using live scoring",
+    "addlive2": "toggles whether a user is receiving live text notifications for the currently selected game, channel 2 is less in-depth",
+    "avgscore": "responds with approx. average score for the alliances a team has been on",
+    "avgpoints": "responds with approx. average score for the alliances a team has been on"
+}
+admin_command_descriptions = {
+    "freeze": "locks/disables TOAText in case of error or maintenance",
+    "metrics": "responds with all team metrics",
+    "metrics2": "responds with all other recorded metrics",
+    "togglelive": "toggles the state of live scoring [togglelive:[matchKey]]",
+    "pingme": "toggles if you get pinged when a user uses TOAText",
+    "banhelp": "bans a number from using the sendhelp feature [banhelp:number (with +1)]",
+    "joinhelp": "toggles if users can message you with issues",
+    "sendhelp": "responds to a sendhelp user (sendhelp:number(with +1):msg",
+    "updateavg": "updates average score to previous weekends"
+}
+def respond_by_command(descriptions, splitParts, number):
+    for command, description in descriptions.items():
+        if command in splitParts:
+            sendText(number, command + " - " + description)
+            return True
+    return False
+
 def checkHelp(splitParts, number):  # Code to check if help was requested
     defaultSend = 0
+    sent = False
     if "?" in splitParts or "helpme" in splitParts:
         print("Help requested by " + str(number))
-        if "location" in splitParts:
-            defaultSend = 1
-            sendText(number, "Location - responds with city and state a team is from")
-        if "name" in splitParts:
-            defaultSend = 1
-            sendText(number, "Name - responds with team name and community/long name")
-        if "startYear" in splitParts:
-            defaultSend = 1
-            sendText(number, "startYear - responds with a team's rookie year")
-        if "website" in splitParts:
-            defaultSend = 1
-            sendText(number, "Website - responds with a team's website")
-        if "events" in splitParts:
-            defaultSend = 1
-            sendText(number, "Events - responds with all events a team has participated in during the current season")
-        if "awards" in splitParts:
-            defaultSend = 1
-            sendText(number, "Awards - responds with all awards a team has won (current season) and where")
-        if "about" in splitParts:
-            defaultSend = 1
-            sendText(number, "About - wanna know about TOAText? Use the About Command")
-        if "newcmds" in splitParts:
-            defaultSend = 1
-            sendText(number, "newCMDs - use this to know what features are new to TOAText")
-        if "flip" in splitParts:
-            defaultSend = 1
-            sendText(number, "flip - flips a virtual coin")
-        if "searchtn" in splitParts:
-            defaultSend = 1
-            sendText(number, "searchTN - attempts to search for a team number by team name. searchTN:Rust In Pieces or searchTN exactname Rust In Pieces")
-        if "matchinfo" in splitParts:
-            defaultSend = 1
-            sendText(number, "matchInfo - Gives breakdowns on a team's matches.")
-            sendText(number,
-                     "Use format [team#]:matchInfo:matches to return all matches a team has been involved in and a match key")
-            sendText(number, "Use format [team#]:matchInfo:[matchKey] to return details about a match")
-            sendText(number, "Use format [team#]:matchInfo:minMax to return details about their best and worst matches")
-            sendText(number, "Use format [team#]:matchInfo:topThree to return details about their top three matches")
-        if "sendhelp" in splitParts and number not in adminList:
-            defaultSend = 1
-            sendText(number, "sendHelp - Pings admins in help list with your number and issue")
-        if "avgtotalscore" in splitParts:
-            defaultSend = 1
-            sendText(number, "avgTotalScore - responds with average auto and teleOp scores for previous weekend")
-        if "avgtotalpoints" in splitParts:
-            defaultSend = 1
-            sendText(number, "avgTotalPoints - responds with average auto and teleOp scores for previous weekend")
-        if "addlive" in splitParts:
-            defaultSend = 1
-            sendText(number,
-                     "AddLive - Toggles whether a user is receiving live text notifications for the currently selected game")
-        if "checklives" in splitParts:
-            defaultSend = 1
-            sendText(number,
-                     "checkLives - Shows what events are currently using live scoring")
-        if "addlive2" in splitParts:
-            defaultSend = 1
-            sendText(number,
-                     "AddLive - Toggles whether a user is receiving live text notifications for the currently selected game, channel 2 is less in-depth")
-        if "avgscore" in splitParts or "avgpoints" in splitParts:
-            defaultSend = 1
-            sendText(number,
-                     "avgScore/avgPoints - responds with approx. average score for the alliances a team has been on")
-        if "freeze" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "Freeze - locks/disables TOAText in case of error or maintenance")
-        if "metrics" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "Metrics - responds with all team metrics")
-        if "metrics2" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "Metrics2 - responds with all other recorded metrics")
-        if "togglelive" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "toggleLive - Toggles the state of live scoring [togglelive:[matchKey]]")
-        if "pingme" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "PingMe - Toggles if you get pinged when a user uses TOAText")
-        if "banhelp" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "BanHelp - Bans a number from using the sendhelp featuer [banhelp:number (with +1)]")
-        if "joinhelp" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "JoinHelp - Toggles if users can message you with issues")
-        if "sendhelp" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "sendHelp - Responds to a sendhelp user (sendhelp:number(with +1):msg")
-        if "updateavg" in splitParts and number in adminList:
-            defaultSend = 1
-            sendText(number, "updateAvg - Updates average score to previous weekends")
-        if defaultSend == 0:
+        if number in adminList:
+            sent = respond_by_command(admin_command_descriptions, splitParts, number)
+        if not sent:
+            sent = respond_by_command(command_descriptions, splitParts, number)
+        if not sent:
             sendText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             sendText(number,
@@ -346,92 +303,42 @@ def returnErrorMsg(error, number):  # Error messages
 
 def parseRequest(number,userRequest):  # Turns user request into usable data
     # requestParts = userRequest.split(',')
+    merge_expression_groups = [
+        ("send", "help"),
+        ("start", "year"),
+        ("avg", "score"),
+        ("avg", "points"),
+        ("avg", "total", "points"),
+        ("match", "info"),
+        ("add", "live"),
+        ("add", "live2"),
+        ("add", "live3"),
+        ("check", "lives"),
+        ("check", "status"),
+        ("ping", "me"),
+        ("update", "avg"),
+        ("update", "admins"),
+        ("join", "help"),
+        ("toggle", "live"),
+        ("toggle", "live2"),
+        ("toggle", "live3"),
+        ("min", "max"),
+        ("top", "three"),
+        ("short", "name"),
+        ("get", "score")
+    ]
     if ":" in userRequest:
         splitParts = userRequest.lower().replace(" ", "").split(":")
     else:
         splitParts = userRequest.lower().split(" ")
-        if "send" in splitParts:
-            if splitParts[splitParts.index("send") + 1] == "help":
-                splitParts.remove("help")
-                splitParts[splitParts.index("send")] = "sendhelp"
-        if "start" in splitParts:
-            if splitParts[splitParts.index("start") + 1] == "year":
-                splitParts.remove("year")
-                splitParts[splitParts.index("start")] = "startyear"
-        if "avg" in splitParts:
-            if splitParts[splitParts.index("avg") + 1] == "score":
-                splitParts.remove("score")
-                splitParts[splitParts.index("avg")] = "avgscore"
-            elif splitParts[splitParts.index("avg") + 1] == "points":
-                splitParts.remove("points")
-                splitParts[splitParts.index("avg")] = "avgpoints"
-            elif splitParts[splitParts.index("avg") + 1] == "total":
-                if splitParts[splitParts.index("avg") + 2] == "points":
-                    splitParts.remove("total")
-                    splitParts.remove("points")
-                    splitParts[splitParts.index("avg")] = "avgtotalpoints"
-        if "match" in splitParts:
-            if splitParts[splitParts.index("match") + 1] == "info":
-                splitParts.remove("info")
-                splitParts[splitParts.index("match")] = "matchinfo"
-        if "add" in splitParts:
-            if splitParts[splitParts.index("add") + 1] == "live":
-                splitParts.remove("live")
-                splitParts[splitParts.index("add")] = "addlive"
-            elif splitParts[splitParts.index("add") + 1] == "live2":
-                splitParts.remove("live2")
-                splitParts[splitParts.index("add")] = "addlive2"
-            elif splitParts[splitParts.index("add") + 1] == "live3":
-                splitParts.remove("live3")
-                splitParts[splitParts.index("add")] = "addlive3"
-        if "check" in splitParts:
-            if splitParts[splitParts.index("check") + 1] == "lives":
-                splitParts.remove("lives")
-                splitParts[splitParts.index("check")] = "checklives"
-            if splitParts[splitParts.index("check") + 1] == "status":
-                splitParts.remove("status")
-                splitParts[splitParts.index("check")] = "checkstatus"
-        if "ping" in splitParts:
-            if splitParts[splitParts.index("ping") + 1] == "me":
-                splitParts.remove("me")
-                splitParts[splitParts.index("ping")] = "pingme"
-        if "update" in splitParts:
-            if splitParts[splitParts.index("update") + 1] == "avg":
-                splitParts.remove("avg")
-                splitParts[splitParts.index("update")] = "updateavg"
-            elif splitParts[splitParts.index("update") + 1] == "admins":
-                splitParts.remove("admins")
-                splitParts[splitParts.index("update")] = "updateadmins"
-        if "join" in splitParts:
-            if splitParts[splitParts.index("join") + 1] == "help":
-                splitParts.remove("help")
-                splitParts[splitParts.index("join")] = "joinhelp"
-        if "toggle" in splitParts:
-            if splitParts[splitParts.index("toggle") + 1] == "live":
-                splitParts.remove("live")
-                splitParts[splitParts.index("toggle")] = "togglelive"
-            if splitParts[splitParts.index("toggle") + 1] == "live2":
-                splitParts.remove("live2")
-                splitParts[splitParts.index("toggle")] = "togglelive2"
-            if splitParts[splitParts.index("toggle") + 1] == "live3":
-                splitParts.remove("live3")
-                splitParts[splitParts.index("toggle")] = "togglelive3"
-        if "min" in splitParts:
-            if splitParts[splitParts.index("min") + 1] == "max":
-                splitParts.remove("max")
-                splitParts[splitParts.index("min")] = "minmax"
-        if "top" in splitParts:
-            if splitParts[splitParts.index("top") + 1] == "three":
-                splitParts.remove("three")
-                splitParts[splitParts.index("top")] = "topthree"
-        if "short" in splitParts:
-            if splitParts[splitParts.index("short") + 1] == "name":
-                splitParts.remove("name")
-                splitParts[splitParts.index("short")] = "shortname"
-        if "get" in splitParts:
-            if splitParts[splitParts.index("get") + 1] == "score":
-                splitParts.remove("score")
-                splitParts[splitParts.index("get")] = "getscore"
+        for expr_group in merge_expression_groups:
+            for i in range(0, len(splitParts) - len(expr_group) + 1):
+                sublist = splitParts[i:i + len(expr_group)]
+                if tuple(sublist) == expr_group:
+                    for n in range(i + 1, i + len(expr_group)):
+                        splitParts.pop(n)
+                    splitParts[i] = ''.join(expr_group)
+                    break
     # print(splitParts)
     return splitParts
 
@@ -551,14 +458,13 @@ def checkTeam(msg, number):  # Code run upon thread starting
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
             metricCount(9)
             return
-        if advertsCheck(number, splitParts) is True:
+
+        if any([advertsCheck(number, splitParts),
+                sendHelp(number, splitParts, msg),
+                addLive(number, splitParts),
+                checkName(number, splitParts, msg)]):
             return
-        if sendHelp(number, splitParts, msg) is True:
-            return
-        if addLive(number, splitParts) is True:
-            return
-        if checkName(number, splitParts, msg) is True:
-            return
+        
         if msg.replace(" ", "").isdigit():  # Checks for just team #
             checkOnlyTeam(msg, number)
         else:
@@ -587,38 +493,36 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
 
 def playGames(number, splitParts): #plays flip a coin or RPS
     if "flip" in splitParts:
-        randomNum = rand.randint(1,2)
         print(str(number) + " Used Flip")
-        if randomNum == 1:
-            sendText(number, "Heads!")
-        elif randomNum == 2:
-            sendText(number, "Tails!")
+        results = ["Heads!", "Tails!"]
+        sendText(number, rand.choice(results))
         return True
     if "rps" in splitParts:
-        rpsRand = rand.randint(1,3)
+        expressions = ["Rock", "Paper", "Scissors"]
+        computerChoice = rand.randint(0, 2)
+        userChoice = None
+        for (i, expr) in enumerate(expressions):
+            if expr.lower() in splitParts:
+                userChoice = i
+
+        if userChoice is None:
+            sendText(number, "Send rps with 'rock', 'paper', or 'scissors' to play")
+            return True
+        
         print(str(number) + " Used RPS")
-        #Rock = 1, Paper = 2, Scissors = 3
-        if "rock" in splitParts:
-            if rpsRand == 1:
-                sendText(number,"Rock (you) vs Rock (computer) - Tie")
-            elif rpsRand == 2:
-                sendText(number,"Rock (you) vs Paper (computer) - Loss")
-            elif rpsRand == 3:
-                sendText(number, "Rock (you) vs Scissors (computer) - Win")
-        elif "paper" in splitParts:
-            if rpsRand == 1:
-                sendText(number,"Paper (you) vs Rock (computer) - Win")
-            if rpsRand == 2:
-                sendText(number,"Paper (you) vs Paper (computer) - Tie")
-            if rpsRand == 3:
-                sendText(number,"Paper (you) vs Scissors (computer) - Loss")
-        elif "scissors" in splitParts:
-            if rpsRand == 1:
-                sendText(number,"Scissors (you) vs Rock (computer) - Loss")
-            if rpsRand == 2:
-                sendText(number,"Scissors (you) vs Paper (computer) - Win")
-            if rpsRand == 3:
-                sendText(number,"Scissors (you) vs Scissors (computer) - Tie")
+        #Rock = 0, Paper = 1, Scissors = 2
+        # 0 beats 2, 1 beats 0, 2 beats 1
+        response = "%s (you) vs %s (computer) - " % (expressions[userChoice], expressions[computerChoice])
+        result = None
+
+        if computerChoice == userChoice:
+            result = "Tie"
+        elif userChoice == (computerChoice + 1) % 3:
+            result = "You win"
+        else:
+            result = "You lose"
+            
+        sendText(number, response + result)
         return True
 
 def checkTeamFlags(splitParts, number):  # Code for if request has flags
