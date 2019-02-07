@@ -1160,9 +1160,9 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                 matchR = requests.get(apiURL + "match/" + splitParts[splitParts.index("team") + 3], headers=apiHeaders)
                 matchStr = "Match info : "
                 if station == 10 or station == 11 or station == 12 or station == 13 or station == 14:
-                    redcompileinfo(matchR.json())
+                    matchStr = redcompileinfo(matchR.json())
                 else:
-                    bluecompileinfo(matchR.json())
+                    matchStr = bluecompileinfo(matchR.json())
                 if station == -1:
                     sendText(number, "The requested team was not in the match or is missing info")
                 else:
@@ -1203,16 +1203,16 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                 matchR = requests.get(apiURL + "match/" + minMatch, headers=apiHeaders)
                 matchStr = "Worst game: "
                 if minStation == 10 or minStation == 11 or minStation == 12 or minStation == 13 or minStation == 14:
-                    redcompileinfo(matchR.json())
+                    matchStr = redcompileinfo(matchR.json())
                 else:
-                    bluecompileinfo(matchR.json())
+                    matchStr = bluecompileinfo(matchR.json())
                 sendText(number, matchStr)
                 matchR = requests.get(apiURL + "match/" + maxMatch, headers=apiHeaders)
                 matchStr = "Best game: "
                 if maxStation == 10 or maxStation == 11 or maxStation == 12 or maxStation == 13 or maxStation == 14:
-                    redcompileinfo(matchR.json())
+                    matchStr = redcompileinfo(matchR.json())
                 else:
-                    bluecompileinfo(matchR.json())
+                    matchStr = bluecompileinfo(matchR.json())
                 sendText(number, matchStr)
             elif splitParts[splitParts.index("team") + 2] == "matchinfo" and splitParts[
                 splitParts.index("team") + 3] == "topthree":
@@ -1280,25 +1280,25 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                 matchStr = "Top game: "
                 if topMatch != "":
                     if topStation == 10 or topStation == 11 or topStation == 12 or topStation == 13 or topStation == 14:
-                        redcompileinfo(matchR.json())
+                        matchStr = redcompileinfo(matchR.json())
                     else:
-                        bluecompileinfo(matchR.json())
+                        matchStr = bluecompileinfo(matchR.json())
                     sendText(number, matchStr)
                 if sndMatch != "":
                     matchR = requests.get(apiURL + "match/" + sndMatch, headers=apiHeaders)
                     matchStr = "2nd best game: "
                     if sndStation == 10 or sndStation == 11 or sndStation == 12 or sndStation == 13 or sndStation == 14:
-                        redcompileinfo(matchR.json())
+                        matchStr = redcompileinfo(matchR.json())
                     else:
-                        bluecompileinfo(matchR.json())
+                        matchStr = bluecompileinfo(matchR.json())
                     sendText(number, matchStr)
                 if thirdMatch != "":
                     matchR = requests.get(apiURL + "match/" + thirdMatch, headers=apiHeaders)
                     matchStr = "3rd best game: "
                     if thirdStation == 10 or thirdStation == 11 or thirdStation == 12 or thirdStation == 13 or thirdStation == 14:
-                        redcompileinfo(matchR.json())
+                        matchStr = redcompileinfo(matchR.json())
                     else:
-                        bluecompileinfo(matchR.json())
+                        matchStr = bluecompileinfo(matchR.json())
                     sendText(number, matchStr)
             else:
                 sendText(number,
