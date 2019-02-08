@@ -121,13 +121,20 @@ def sendText(number, msg):  # Code to send outgoing text
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
-
-    message = client.messages \
-        .create(
-        body=str(msg),
-        from_='+16146666924',
-        to=str(number)
-    )
+    if "+1" in number:
+        message = client.messages \
+            .create(
+            body=str(msg),
+            from_='+16146666924',
+            to=str(number)
+        )
+    elif "+972" in number:
+        message = client.messages \
+            .create(
+            body=str(msg),
+            from_='+972525932576',
+            to=str(number)
+        )
 
 
 command_descriptions = {
@@ -205,7 +212,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         sendText(number, "To know more about any commands, use ?:[command] or helpme:[command]")
         return True
     elif "newcmds" in splitParts:
-        sendText(number, "New features - checklives, matchinfo, addLive, searchTN")
+        sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN")
         return True
     elif "checklives" in splitParts:
         runningKeys = ""
@@ -339,10 +346,14 @@ def parseRequest(number, userRequest):  # Turns user request into usable data
         ("toggle", "live"),
         ("toggle", "live2"),
         ("toggle", "live3"),
+        ("live", "stats"),
+        ("live", "stats2"),
+        ("live", "stats3"),
         ("min", "max"),
         ("top", "three"),
         ("short", "name"),
-        ("get", "score")
+        ("get", "score"),
+
     ]
     if ":" in userRequest:
         splitParts = userRequest.lower().replace(" ", "").split(":")
@@ -458,6 +469,58 @@ def sendHelp(number, splitParts, rawRequest):  # Sends message to any admin in h
     else:
         return False
 
+def liveStats(number, splitParts):
+    if "team" in splitParts:
+        if "livestats" in splitParts:
+            if "ranking" in splitParts:
+                rankR = requests.get(apiURL + "event/" + liveMatchKey + "/rankings", headers=apiHeaders)
+                try:
+                    for i in range(len(rankR.json())):
+                        if rankR.json()[i]["team_key"] == splitParts[splitParts.index("team") + 1]:
+                            sendText(number, "Team " + str(splitParts[splitParts.index("team") + 1]) + " is ranked " + str(rankR.json()[i]["rank"]) + " at their current event.")
+                            break
+                except:
+                    sendText(number, "Sorry, however that information could not be found. Perhaps the rankings for this event aren't uploaded yet")
+            elif "matchscores" in splitParts:
+                matchR = requests.get(apiURL + "event/" + liveMatchKey + "/matches", headers=apiHeaders)
+                for i in range(len(matchR.json())):
+                    for a in range(len(matchR.json()[i]["participants"])):
+                        if matchR.json()[i]["participants"][a]["team_key"] == splitParts[splitParts.index("team") + 1]:
+                            station = matchR.json()[i]["participants"][a]["station"]
+                            jsonInfo = matchR.json()[i]
+                            if station == 10 or station == 11 or station == 12 or station == 13 or station == 14:
+                                redStr = "Auto - " + str(jsonInfo["red_auto_score"]) + "; "
+                                redStr += "TeleOP - " + str(jsonInfo["red_tele_score"]) + "; "
+                                redStr += "Endgame - " + str(jsonInfo["red_end_score"]) + "; "
+                                redStr += "Total - " + str(jsonInfo["red_score"]) + ""
+                            else:
+                                blueStr = "Auto - " + str(jsonInfo["blue_auto_score"]) + "; "
+                                blueStr += "TeleOP - " + str(jsonInfo["blue_tele_score"]) + "; "
+                                blueStr += "Endgame - " + str(jsonInfo["blue_end_score"]) + "; "
+                                blueStr += "Total - " + str(jsonInfo["blue_score"]) + ""
+            else:
+                sendText(number, "Please provide a more indepth command for livestats")
+            return True
+    elif "livestats" in splitParts:
+        if "topteams" in splitParts:
+            rankR = requests.get(apiURL + "event/" + liveMatchKey + "/rankings", headers=apiHeaders)
+            topTeam = "Not available"
+            secTeam = "Not available"
+            thirdTeam = "Not available"
+            try:
+                for i in range(len(rankR.json())):
+                    if rankR.json()[i]["rank"] == 1:
+                        topTeam = rankR.json()[i]["team_key"]
+                    elif rankR.json()[i]["rank"] == 2:
+                        secTeam = rankR.json()[i]["team_key"]
+                    elif rankR.json()[i]["rank"] == 3:
+                        thirdTeam = rankR.json()[i]["team_key"]
+                sendText(number,
+                         "Top ranked team - " + str(topTeam) + ", 2nd - " + str(secTeam) + ", 3rd - " + str(thirdTeam))
+            except:
+                sendText(number,
+                         "Sorry, however that information could not be found. Perhaps the rankings for this event aren't uploaded yet")
+            return True
 
 def checkTeam(msg, number):  # Code run upon thread starting
     metricCount(1)
@@ -482,6 +545,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
         if advertsCheck(number, splitParts) or \
                 sendHelp(number, splitParts, msg) or \
                 addLive(number, splitParts) or \
+                liveStats(number, splitParts) or \
                 checkName(number, splitParts, msg):
             return
 
@@ -499,6 +563,8 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
     splitParts = ['team', 'location', 'shortname', 'startyear', 'events']
     splitParts.insert(1, teamNum)
     if "_code" not in r.json():
+        if liveStats(number, splitParts):
+            return
         if getTeamMatches(number, splitParts):
             return
         basicInfo = checkTeamInfo(splitParts)
@@ -569,6 +635,8 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
                 allFlag = 1
             if getTeamMatches(number, splitParts):
                 return
+            if liveStats(number, splitParts):
+                return
             basicInfo = checkTeamInfo(splitParts)
             advancedInfo = checkAdvInfo(splitParts)
             if advancedInfo == "" and basicInfo == "":
@@ -600,7 +668,7 @@ def checkLiveScoring():  # live scoring channel 1
         if "_code" not in r.json():
             break
     while liveScoreRunning:
-        time.sleep(2)
+        time.sleep(15)
         try:
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
@@ -1593,7 +1661,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
 def metricCount(action):  # Code to log metrics
     with open("metric.json", "r") as read_file:
         data = json.load(read_file)
-    metricList = ["textsRec", "locGet", "nameGet", "yearGet", "webGet", "eveGet", "awardGet", "helpGet", "avgTotalGet",
+    metricList = ["textsRec", "locGet", "nameGet", "yearGet", "webGet", "eveGet", "awardGet", "helpGet", "avgTotalGet","avgGet",
                   "matchGet", "livesSent"]
     data[str(metricList[action - 1])] += 1
     with open("metric.json", "w") as write_file:
