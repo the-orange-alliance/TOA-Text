@@ -40,6 +40,11 @@ twilioAuth = ""
 autoSum = 0
 teleOpSum = 0
 
+#list of numbers who want to use the 810 number
+numTwoList = []
+
+
+#all of live channel 1 variables
 liveScoreRunning = False
 liveMatchKey = ""
 liveScoreList = []
@@ -48,19 +53,22 @@ liveScoreScores = []
 liveSkip = False
 liveQualMode = False
 
+#all of live channel 2 variables
 liveScoreRunningTwo = False
 liveMatchKeyTwo = ""
 liveScoreListTwo = []
 liveSkipTwo = False
 liveQualModeTwo = False
 
+#all of live channel 3 variables
 liveScoreRunningThree = False
 liveMatchKeyThree = ""
 liveScoreListThree = []
 liveSkipThree = False
 liveQualModeThree = False
 
-
+mainNum = ""
+secNum = ""
 class myThread(threading.Thread):  # Thread created upon request
     def __init__(self, name, sendnum, msgbody):
         threading.Thread.__init__(self)
@@ -101,7 +109,7 @@ class liveScoringThreadTwo(threading.Thread):  # Thread created for live scoring
 
 
 class liveScoringThreadThree(threading.Thread):  # Thread created for live scoring channel 3
-    def __init__(self, name):
+    def __init__(self, name, startingUser):
         threading.Thread.__init__(self)
         self.name = name
 
@@ -114,9 +122,15 @@ class liveScoringThreadThree(threading.Thread):  # Thread created for live scori
 
 @app.route("/sms", methods=['POST'])
 def receiveText():  # Code executed upon receiving text
+    global numTwoList
+    twilioNum = request.form['To']
     number = request.form['From']
     message_body = request.form['Body']
     # print("Received from: " + str(number))
+    if twilioNum == "+18102020701" and number not in numTwoList:
+        numTwoList.append(number)
+    elif twilioNum == "+16146666924" and number in numTwoList:
+        numTwoList.remove(number)
     resp = MessagingResponse()
     t = myThread(number, number, message_body)
     t.start()
@@ -124,10 +138,18 @@ def receiveText():  # Code executed upon receiving text
 
 
 def sendText(number, msg):  # Code to send outgoing text
+    global numTwoList
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
-    if "+1" in number:
+    if "+1" in number and number in numTwoList:
+        message = client.messages \
+            .create(
+            body=str(msg),
+            from_='+18102020701',
+            to=str(number)
+        )
+    elif "+1" in number:
         message = client.messages \
             .create(
             body=str(msg),
@@ -322,11 +344,11 @@ def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
     errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
                  "I must be a swerve drive, because apparently I never work!", "Hey there! Thats not very nice of you!",
-                 "Just remember, goBILDA or go home. (EC1)", "... Bestrix.",
+                 "Just remember, goBILDA or go home", "... Bestrix.",
                  "Hold your horses, that's not very GP of you",
                  "Try again. The delivery robot strafed the wrong direction",
                  "I'm still waiting... and waiting... and waiting"]
-    randomNum = rand.randint(0, len(errorList))
+    randomNum = rand.randint(0, len(errorList)-1)
     errorMsgText = errorList[randomNum]
     if error == 'invalTeam':  # Missing Team Arguement
         errorMsgText += " (EC1)"
