@@ -45,14 +45,20 @@ liveMatchKey = ""
 liveScoreList = []
 liveScorePredict = []
 liveScoreScores = []
+liveSkip = False
+liveQualMode = False
 
 liveScoreRunningTwo = False
 liveMatchKeyTwo = ""
 liveScoreListTwo = []
+liveSkipTwo = False
+liveQualModeTwo = False
 
 liveScoreRunningThree = False
 liveMatchKeyThree = ""
 liveScoreListThree = []
+liveSkipThree = False
+liveQualModeThree = False
 
 
 class myThread(threading.Thread):  # Thread created upon request
@@ -152,11 +158,14 @@ command_descriptions = {
                  "Use format [team#]:matchInfo:[matchKey] to return details about a match. " +
                  "Use format [team#]:matchInfo:minMax to return details about their best and worst matches. " +
                  "Use format [team#]:matchInfo:topThree to return details about their top three matches",
+    "livestats": "Can be used if event is running on live Channel 1 (Check with checklives)" +
+                 "Use format [team#]:livestats:ranking to return a teams current ranking " +
+                 "Use format [team#]:livestats:matches to return all matches a team has played in",
     "sendhelp": "pings admins in help list with your number and issue",
     "avgtotalscore": "responds with average auto and teleOp scores for previous weekend",
     "avgtotalpoints": "responds with average auto and teleOp scores for previous weekend",
     "addlive": "toggles whether a user is receiving live text notifications for the currently selected game",
-    "checklive": "shows what events are currently using live scoring",
+    "checklives": "shows what events are currently using live scoring",
     "addlive2": "toggles whether a user is receiving live text notifications for the currently selected game, channel 2 is less in-depth",
     "avgscore": "responds with approx. average score for the alliances a team has been on",
     "avgpoints": "responds with approx. average score for the alliances a team has been on"
@@ -170,7 +179,9 @@ admin_command_descriptions = {
     "banhelp": "bans a number from using the sendhelp feature [banhelp:number (with +1)]",
     "joinhelp": "toggles if users can message you with issues",
     "sendhelp": "responds to a sendhelp user (sendhelp:number(with +1):msg",
-    "updateavg": "updates average score to previous weekends"
+    "updateavg": "updates average score to previous weekends",
+    "liveskip": "Skips over live match if a single match is missing from DataSync",
+    "livequalmode": "Prevents advancement from quals if toggled"
 }
 
 
@@ -195,12 +206,12 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             sendText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             sendText(number,
-                     "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo")
+                     "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats")
             sendText(number,
                      "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
             if number in adminList:
                 sendText(number,
-                         "Available admin requests are: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, toggleLive, updateAdmins")
+                         "Available admin requests are: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, toggleLive, liveskip, livequalmode, updateAdmins")
             sendText(number,
                      "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
         return True
@@ -657,6 +668,8 @@ def checkLiveScoring():  # live scoring channel 1
     global liveScoreRunning
     global liveScorePredict
     global liveScoreScores
+    global liveSkip
+    liveSkip = False
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
@@ -668,7 +681,10 @@ def checkLiveScoring():  # live scoring channel 1
         if "_code" not in r.json():
             break
     while liveScoreRunning:
-        time.sleep(15)
+        time.sleep(10)
+        if liveSkip:
+            liveSkip = False
+            currentMatch += 1
         try:
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
@@ -697,7 +713,7 @@ def checkLiveScoring():  # live scoring channel 1
                             blueOne = personR.json()[i]["team_key"]
                         elif personR.json()[i]["station"] == 22:
                             blueTwo = personR.json()[i]["team_key"]
-                    print("Qual match " + str(currentMatch) + " ended")
+                    print(str(liveMatchKey) + " - Qual match " + str(currentMatch) + " ended")
                     queuingStr = ""
                     try:
                         if currentMatch + 1 < 10:
@@ -762,15 +778,20 @@ def checkLiveScoring():  # live scoring channel 1
                         sendText(i, queuingStr)
                     currentMatch += 1
         except KeyError:
-            break
+            if not liveQualMode:
+                break
         except TypeError:
-            break
+            if not liveQualMode:
+                break
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-E001-1",
                      headers=apiHeaders)
     previousName = "NoPrev"
     while liveScoreRunning and str(previousName) != "Finals 3":
         time.sleep(5)
+        if liveSkip:
+            liveSkip = False
+            currentMatch += 1
         try:
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-E00" + str(currentMatch) + "-1",
@@ -803,7 +824,7 @@ def checkLiveScoring():  # live scoring channel 1
                                     blueOne = personR.json()[i]["team_key"]
                                 elif blueTwo == "":
                                     blueTwo = personR.json()[i]["team_key"]
-                    print("Elim match " + str(currentMatch) + " ended")
+                    print(str(liveMatchKey) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
                     for i in liveScoreList:
                         metricCount(12)
@@ -829,6 +850,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
     global liveMatchKeyTwo
     global liveScoreListTwo
     global liveScoreRunningTwo
+    global liveSkipTwo
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
@@ -841,6 +863,9 @@ def checkLiveScoringTwo():  # live scoring channel 2
             break
     while liveScoreRunningTwo:
         time.sleep(2)
+        if liveSkipTwo:
+            liveSkipTwo = False
+            currentMatch += 1
         try:
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
@@ -869,7 +894,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
                             blueOne = personR.json()[i]["team_key"]
                         elif personR.json()[i]["station"] == 22:
                             blueTwo = personR.json()[i]["team_key"]
-                    print("Qual match " + str(currentMatch) + " ended")
+                    print(str(liveMatchKeyTwo) + " - Qual match " + str(currentMatch) + " ended")
                     queuingStr = ""
                     try:
                         if currentMatch + 1 < 10:
@@ -926,15 +951,20 @@ def checkLiveScoringTwo():  # live scoring channel 2
                         sendText(i, queuingStr)
                     currentMatch += 1
         except KeyError:
-            break
+            if not liveQualModeTwo:
+                break
         except TypeError:
-            break
+            if not liveQualModeTwo:
+                break
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-E001-1",
                      headers=apiHeaders)
     previousName = "NoPrev"
     while liveScoreRunningTwo and str(previousName) != "Finals 3":
         time.sleep(5)
+        if liveSkipTwo:
+            liveSkipTwo = False
+            currentMatch += 1
         try:
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-E00" + str(currentMatch) + "-1",
@@ -967,7 +997,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
                                     blueOne = personR.json()[i]["team_key"]
                                 elif blueTwo == "":
                                     blueTwo = personR.json()[i]["team_key"]
-                    print("Elim match " + str(currentMatch) + " ended")
+                    print(str(liveMatchKeyTwo) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
                     for i in liveScoreListTwo:
                         metricCount(12)
@@ -991,6 +1021,7 @@ def checkLiveScoringThree():  # live scoring channel 3
     global liveMatchKeyThree
     global liveScoreListThree
     global liveScoreRunningThree
+    global liveSkipThree
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
@@ -1003,6 +1034,9 @@ def checkLiveScoringThree():  # live scoring channel 3
             break
     while liveScoreRunningThree:
         time.sleep(2)
+        if liveSkipThree:
+            liveSkipThree = False
+            currentMatch += 1
         try:
             if currentMatch < 10:
                 r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
@@ -1031,7 +1065,7 @@ def checkLiveScoringThree():  # live scoring channel 3
                             blueOne = personR.json()[i]["team_key"]
                         elif personR.json()[i]["station"] == 22:
                             blueTwo = personR.json()[i]["team_key"]
-                    print("Qual match " + str(currentMatch) + " ended")
+                    print(str(liveMatchKeyThree) + " - Qual match " + str(currentMatch) + " ended")
                     queuingStr = ""
                     try:
                         if currentMatch + 1 < 10:
@@ -1088,14 +1122,19 @@ def checkLiveScoringThree():  # live scoring channel 3
                         sendText(i, queuingStr)
                     currentMatch += 1
         except KeyError:
-            break
+            if not liveQualModeThree:
+                break
         except TypeError:
-            break
+            if not liveQualModeThree:
+                break
     currentMatch = 1
     r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-E001-1",
                      headers=apiHeaders)
     previousName = "NoPrev"
     while liveScoreRunningThree and str(previousName) != "Finals 3":
+        if liveSkipThree:
+            liveSkipThree = False
+            currentMatch += 1
         time.sleep(5)
         try:
             if currentMatch < 10:
@@ -1129,7 +1168,7 @@ def checkLiveScoringThree():  # live scoring channel 3
                                     blueOne = personR.json()[i]["team_key"]
                                 elif blueTwo == "":
                                     blueTwo = personR.json()[i]["team_key"]
-                    print("Elim match " + str(currentMatch) + " ended")
+                    print(str(liveMatchKeyThree) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
                     for i in liveScoreListThree:
                         metricCount(12)
@@ -1485,12 +1524,16 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     global liveScoreList
     global liveScoreScores
     global liveScorePredict
+    global liveSkip
+    global liveQualMode
     global liveScoreRunningTwo
     global liveMatchKeyTwo
     global liveScoreListTwo
+    global liveSkipTwo
     global liveMatchKeyThree
     global liveScoreListThree
     global liveScoreRunningThree
+    global liveSkipThree
     global helpNumList
     if number in adminList:
         if "freeze" in msg:  # Disable or enable
@@ -1603,6 +1646,29 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             else:
                 sendText(number, "ToggleLive missing match key [toggleLive:(matchKey)]")
                 return True
+        elif "skiplive" in msg:
+            liveSkip = True
+            print("Admin " + str(number) + " used the skipLive command")
+            sendText(number, "Attempted to skip match")
+            return True
+        elif "skiplive2" in msg:
+            liveSkipTwo = True
+            print("Admin " + str(number) + " used the skipLiveTwo command")
+            sendText(number, "Attempted to skip match")
+            return True
+        elif "skiplive3" in msg:
+            liveSkipThree = True
+            print("Admin " + str(number) + " used the skipLiveThree command")
+            sendText(number, "Attempted to skip match")
+            return True
+        elif "livequalmode" in msg:
+            if liveQualMode:
+                liveQualMode = False
+                sendText(number, "Holding in qualification matches has been disabled")
+            elif not liveQualMode:
+                liveQualMode = True
+                sendText(number, "Holding in qualification mode is now enabled")
+            return True
         elif "sendhelp" in msg:
             print("Admin " + str(number) + " used the sendHelp command")
             splitParts = rawRequest.lower().replace(" ", " ").split(":")
