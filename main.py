@@ -1284,8 +1284,8 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
             for i in FTCScoresList:
                 metricCount(12)
                 sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                    r.json()["matches"][currentMatch]["scores"]["red"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                    r.json()["matches"][currentMatch]["scores"]["blue"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                 sendText(i, queuingStr)
             currentMatch += 1
     FTCScoresMatchKey = ""
