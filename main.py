@@ -598,7 +598,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
     metricCount(1)
     global disableMode
     splitParts = parseRequest(number, msg)
-    if optOutIn(number,splitParts) is true:
+    if optOutIn(number,splitParts) is True:
         return
     if pingList:  # Checks for numbers to send a ping to
         for adminNum in pingList:
