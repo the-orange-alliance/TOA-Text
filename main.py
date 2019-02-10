@@ -1957,10 +1957,15 @@ def optOutIn(number, splitParts):
         print(str(number) + " is now off the opt out list.")
     elif "tempstart" in splitParts:
         print(str(number) + " was already off the opt out list.")
+        sendText(number, "You were already able to use TOAText")
+        return True
     if trigger:
         with open("optout.json", "w") as write_file:
             json.dump(optOutNums, write_file)
         return True
+    if not trigger and number in optOutNums["numbers"]:
+        return True
+
 
 
 if __name__ == "__main__":  # starts the whole program
