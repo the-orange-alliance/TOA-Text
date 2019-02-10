@@ -1262,20 +1262,20 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
             redTwo = str(r.json()["matches"][currentMatch]["teams"]["red"][1]["number"])
             blueOne = str(r.json()["matches"][currentMatch]["teams"]["blue"][0]["number"])
             blueTwo = str(r.json()["matches"][currentMatch]["teams"]["blue"][1]["number"])
-            print(str(liveMatchKeyThree) + " - Qual match " + str(currentMatch) + " ended")
+            print(str(liveMatchKeyThree) + " - Qual match " + str(currentMatch+1) + " ended")
             queuingStr = ""
             try:
                 redOneNext = str(r.json()["matches"][currentMatch+1]["teams"]["red"][0]["number"])
                 redTwoNext = str(r.json()["matches"][currentMatch+1]["teams"]["red"][1]["number"])
                 blueOneNext = str(r.json()["matches"][currentMatch+1]["teams"]["blue"][0]["number"])
                 blueTwoNext = str(r.json()["matches"][currentMatch+1]["teams"]["blue"][1]["number"])
-                queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                queuingStr += "Next (" + str(currentMatch + 2) + ") = red [#" + str(redOneNext) + ", #" + str(
                     redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
                 redOneExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["red"][0]["number"])
                 redTwoExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["red"][1]["number"])
                 blueOneExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["blue"][0]["number"])
                 blueTwoExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["blue"][1]["number"])
-                queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                queuingStr += "2 matches away (" + str(currentMatch + 3) + ") = red [#" + str(
                     redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
                     blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
             except KeyError:
@@ -1283,7 +1283,7 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
                 continue
             for i in FTCScoresList:
                 metricCount(12)
-                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                sendText(i, "Qual match " + str(currentMatch+1) + " has just ended! " + "Final score: " + str(
                     r.json()["matches"][currentMatch]["scores"]["red"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
                     r.json()["matches"][currentMatch]["scores"]["blue"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                 sendText(i, queuingStr)
