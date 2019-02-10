@@ -199,12 +199,14 @@ admin_command_descriptions = {
     "freeze": "locks/disables TOAText in case of error or maintenance",
     "metrics": "responds with all team metrics",
     "metrics2": "responds with all other recorded metrics",
-    "togglelive": "toggles the state of live scoring [togglelive:[matchKey]]",
     "pingme": "toggles if you get pinged when a user uses TOAText",
     "banhelp": "bans a number from using the sendhelp feature [banhelp:number (with +1)]",
     "joinhelp": "toggles if users can message you with issues",
     "sendhelp": "responds to a sendhelp user (sendhelp:number(with +1):msg",
-    "updateavg": "updates average score to previous weekends",
+    "updateavg": "updates average score to previous weekends"
+}
+event_command_descriptions = {
+    "togglelive": "toggles the state of live scoring [togglelive:[matchKey]]",
     "liveskip": "Skips over live match if a single match is missing from DataSync",
     "livequalmode": "Prevents advancement from quals if toggled"
 }
@@ -225,6 +227,8 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         print("Help requested by " + str(number))
         if number in adminList:
             sent = respond_by_command(admin_command_descriptions, splitParts, number)
+        if not sent and number in eventAdminList:
+            sent = respond_by_command(event_command_descriptions, splitParts, number)
         if not sent:
             sent = respond_by_command(command_descriptions, splitParts, number)
         if not sent:
@@ -1431,9 +1435,13 @@ def checkTeamInfo(splitParts):  # Code to request basic team info
     if 'name' in splitParts:
         metricCount(3)
         basicInfoString += "Name - "
-        if r.json()[0]["team_name_short"] and r.json()[0]["team_name_short"] is not None:
+        if r.json()[0]["team_name_short"] is not None and r.json()[0]["team_name_short"] is not None:
             basicInfoString += r.json()[0]["team_name_short"]
             basicInfoString += ", "
+            basicInfoString += r.json()[0]["team_name_long"]
+            basicInfoString += "; "
+        elif r.json()[0]["team_name_long"] is not None:
+            basicInfoString += "Name - "
             basicInfoString += r.json()[0]["team_name_long"]
             basicInfoString += "; "
         else:
@@ -1443,6 +1451,10 @@ def checkTeamInfo(splitParts):  # Code to request basic team info
         if r.json()[0]["team_name_short"] is not None:
             basicInfoString += "Name - "
             basicInfoString += r.json()[0]["team_name_short"]
+            basicInfoString += "; "
+        elif r.json()[0]["team_name_long"] is not None:
+            basicInfoString += "Name - "
+            basicInfoString += r.json()[0]["team_name_long"]
             basicInfoString += "; "
         else:
             basicInfoString += "Name not listed; "
