@@ -163,6 +163,9 @@ def sendText(number, msg):  # Code to send outgoing text
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
+    if number in optOutNums["numbers"]:
+        print("A blocked number ("+str(number)+") tried to make a request")
+        return
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
@@ -241,7 +244,7 @@ def respond_by_command(descriptions, splitParts, number):
 def checkHelp(splitParts, number):  # Code to check if help was requested
     defaultSend = 0
     sent = False
-    if "?" in splitParts or "helpme" in splitParts:
+    if "?" in splitParts or "helpme" in splitParts or "help" in splitParts:
         print("Help requested by " + str(number))
         if number in adminList:
             sent = respond_by_command(admin_command_descriptions, splitParts, number)
@@ -264,6 +267,8 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                 sendText(number, adminHelpStr)
             sendText(number,
                      "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
+            sendText(number,
+                     "Text STOP to opt-out of using TOAText. Use START to opt back into TOAText.")
         return True
     elif "about" in splitParts:
         sendText(number,
@@ -1942,20 +1947,20 @@ def loadOptOuts():  # Requests list of all teams to be stored for string matchin
 def optOutIn(number, splitParts):
     global optOutNums
     trigger = False
-    if "tempstop" in splitParts and number not in optOutNums["numbers"]:
+    if "stop" in splitParts or "quit" in splitParts and number not in optOutNums["numbers"]:
         optOutNums["numbers"].append(number)
         sendText(number, "You will no longer receive messages from or be able to use TOAText")
         trigger = True
         print(str(number) + " is now on the opt out list.")
-    elif "tempstop" in splitParts:
+    elif "stop" in splitParts:
         trigger = True
         print(str(number) + " was already on the opt out list.")
-    elif "tempstart" in splitParts and number in optOutNums["numbers"]:
+    elif "start" in splitParts and number in optOutNums["numbers"]:
         trigger = True
         sendText(number, "You may now use TOAText again")
         optOutNums["numbers"].remove(number)
         print(str(number) + " is now off the opt out list.")
-    elif "tempstart" in splitParts:
+    elif "start" in splitParts:
         print(str(number) + " was already off the opt out list.")
         sendText(number, "You were already able to use TOAText")
         return True
@@ -1964,6 +1969,7 @@ def optOutIn(number, splitParts):
             json.dump(optOutNums, write_file)
         return True
     if not trigger and number in optOutNums["numbers"]:
+        print("A blocked number (" + str(number) + ") tried to make a request")
         return True
 
 
