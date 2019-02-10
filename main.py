@@ -335,13 +335,13 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     if "addliveftcscores" in splitParts:
-        print(str(number) + " Used AddLive2")
+        print(str(number) + " Used addliveftcscores")
         if number in FTCScoresList:
             FTCScoresList.remove(number)
             sendText(number, "You have been removed from the live scoring alerts")
         elif number not in FTCScoresList:
             FTCScoresList.append(number)
-            sendText(number, "You have been added to the live scoring alerts. Send FTCScoresList again to be removed")
+            sendText(number, "You have been added to the live scoring alerts. Send addliveftcscores again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
@@ -1257,7 +1257,7 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
     while FTCScoresRunning:
         time.sleep(2)
         r = requests.get(FTCScoresApi + "events/" + str(FTCScoresMatchKey))
-        if int(r.json()["matches"][currentMatch]["scores"]["red"]) > 0 or int(r.json()["matches"][currentMatch]["scores"]["blue"]) > 0:
+        if str(r.json()["matches"][currentMatch]["status"]) == "done":
             redOne = str(r.json()["matches"][currentMatch]["teams"]["red"][0]["number"])
             redTwo = str(r.json()["matches"][currentMatch]["teams"]["red"][1]["number"])
             blueOne = str(r.json()["matches"][currentMatch]["teams"]["blue"][0]["number"])
@@ -1281,7 +1281,7 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
             except KeyError:
                 print("KeyError")
                 continue
-            for i in liveScoreListThree:
+            for i in FTCScoresList:
                 metricCount(12)
                 sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
                     r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
