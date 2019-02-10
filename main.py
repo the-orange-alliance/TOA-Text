@@ -36,6 +36,8 @@ helpNumList = []
 # all Teams in first
 allTeams = []
 
+optOutNums = []
+
 twilioAccountID = ""
 twilioAuth = ""
 
@@ -596,6 +598,8 @@ def checkTeam(msg, number):  # Code run upon thread starting
     metricCount(1)
     global disableMode
     splitParts = parseRequest(number, msg)
+    if optOutIn(number,splitParts) is true:
+        return
     if pingList:  # Checks for numbers to send a ping to
         for adminNum in pingList:
             if adminNum != number:
@@ -1928,12 +1932,43 @@ def loadAllTeams():  # Requests list of all teams to be stored for string matchi
     allTeams = teamsR.json()
     print("Recieved all teams")
 
+def loadOptOuts():  # Requests list of all teams to be stored for string matching
+    global optOutNums
+    with open("optout.json", "r") as read_file:
+        data = json.load(read_file)
+    optOutNums = data
+    print("Loaded all optOut numbers")
+
+def optOutIn(number, splitParts):
+    global optOutNums
+    trigger = False
+    if "tempstop" in splitParts and number not in optOutNums["numbers"]:
+        optOutNums["numbers"].append(number)
+        sendText(number, "You will no longer receive messages from or be able to use TOAText")
+        trigger = True
+        print(str(number) + " is now on the opt out list.")
+    elif "tempstop" in splitParts:
+        trigger = True
+        print(str(number) + " was already on the opt out list.")
+    elif "tempstart" in splitParts and number in optOutNums["numbers"]:
+        trigger = True
+        sendText(number, "You may now use TOAText again")
+        optOutNums["numbers"].remove(number)
+        print(str(number) + " is now off the opt out list.")
+    elif "tempstart" in splitParts:
+        print(str(number) + " was already off the opt out list.")
+    if trigger:
+        with open("optout.json", "w") as write_file:
+            json.dump(optOutNums, write_file)
+        return True
+
 
 if __name__ == "__main__":  # starts the whole program
     print("started")
     loadAdminList()
     loadTwilio()
     loadAllTeams()
+    loadOptOuts()
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
     sendText(str(adminList[0]), "TOAText finished bootup sequence")
     pingList.append(str(adminList[0]))
