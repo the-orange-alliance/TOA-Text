@@ -1286,6 +1286,7 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
                 sendText(i, "Qual match " + str(currentMatch+1) + " has just ended! " + "Final score: " + str(
                     r.json()["matches"][currentMatch]["scores"]["red"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
                     r.json()["matches"][currentMatch]["scores"]["blue"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                time.sleep(0.5)
                 sendText(i, queuingStr)
             currentMatch += 1
     FTCScoresMatchKey = ""
