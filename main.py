@@ -1658,7 +1658,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             print("Average auto score - " + str(autoSum) + " || Average TeleOp score - " + str(
                 teleOpSum) + " || Average score - " + str(autoSum + teleOpSum))
             return True
-    elif number in eventAdminList:
+    if number in eventAdminList:
         if "togglelive" in msg:
             try:
                 if "1819" in msg[msg.index("togglelive") + 1]:
