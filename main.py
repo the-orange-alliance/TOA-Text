@@ -24,6 +24,9 @@ disableMode = 0
 # numbers allowed to use admin cmds
 adminList = []
 
+#numbers allowed to use event admin cmds
+eventAdminList = []
+
 # numbers who get pinged upon use
 pingList = []
 
@@ -112,7 +115,7 @@ class liveScoringThreadThree(threading.Thread):  # Thread created for live scori
     def __init__(self, name, startingUser):
         threading.Thread.__init__(self)
         self.name = name
-
+        self.startingUser = startingUser
     def run(self):
         print("Starting live scoring Three")
         checkLiveScoringThree()
@@ -231,9 +234,12 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats")
             sendText(number,
                      "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
+            adminHelpStr = ""
             if number in adminList:
-                sendText(number,
-                         "Available admin requests are: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, toggleLive, liveskip, livequalmode, updateAdmins")
+                adminHelpStr += "Available admin requests are: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, updateAdmins; "
+            if number in eventAdminList:
+                adminHelpStr += "Available event admin requests are: toggleLive, liveskip, livequalmode"
+                sendText(number, adminHelpStr)
             sendText(number,
                      "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
         return True
@@ -1603,7 +1609,57 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 helpNumList.append(number)
                 sendText(number, "Added to help list")
             return True
-        elif "togglelive" in msg:
+        elif "sendhelp" in msg:
+            print("Admin " + str(number) + " used the sendHelp command")
+            splitParts = rawRequest.lower().replace(" ", " ").split(":")
+            sendText(str(splitParts[1]), "From admin - " + str(splitParts[2]))
+            return True
+        elif "banhelp" in msg:
+            print("Admin " + str(number) + " used the banHelp command")
+            bannedNums = []
+            with open('bannedNumbers.txt', 'r') as banFile:
+                for line in banFile:
+                    # remove linebreak which is the last character of the string
+                    addBan = line[:-1]
+                    bannedNums.append(addBan)
+            bannedNums.append(msg[msg.index("banhelp") + 1])
+            with open('bannedNumbers.txt', 'w') as banFile:
+                for bannedNumber in bannedNums:
+                    banFile.write('%s\n' % bannedNumber)
+            return True
+        elif "updateavg" in msg:
+            print("Admin " + str(number) + " used the updateavg command")
+            null = None
+            false = False
+            true = True
+            eventr = requests.get(apiURL + "event/?season_key=1819", headers=apiHeaders)
+            eventsList = eventr.json()
+            autoSum = 0
+            teleOpSum = 0
+            filledEvents = 0
+            for i in range(len(eventsList)):
+                if "2019-02-02" in eventsList[i]["start_date"]:
+                    print(eventsList[i]["event_name"])
+                    matchr = requests.get(apiURL + "event/" + eventsList[i]["event_key"] + "/matches",
+                                          headers=apiHeaders)
+                    matchList = matchr.json()
+                    addToAuto = 0
+                    addToTele = 0
+                    for a in range(len(matchList)):
+                        addToAuto += ((matchList[a]["red_auto_score"] + matchList[a]["blue_auto_score"]) / 2)
+                        addToTele += ((matchList[a]["red_tele_score"] + matchList[a]["blue_tele_score"] + matchList[a][
+                            "red_end_score"] + matchList[a]["blue_end_score"]) / 4)
+                    if len(matchList) != 0:
+                        filledEvents += 1
+                        autoSum += addToAuto / len(matchList)
+                        teleOpSum += addToTele / len(matchList)
+            autoSum = autoSum / filledEvents
+            teleOpSum = teleOpSum / filledEvents
+            print("Average auto score - " + str(autoSum) + " || Average TeleOp score - " + str(
+                teleOpSum) + " || Average score - " + str(autoSum + teleOpSum))
+            return True
+    elif number in eventAdminList:
+        if "togglelive" in msg:
             try:
                 if "1819" in msg[msg.index("togglelive") + 1]:
                     print("Admin " + str(number) + " used the toggleLive command")
@@ -1691,57 +1747,6 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 liveQualMode = True
                 sendText(number, "Holding in qualification mode is now enabled")
             return True
-        elif "sendhelp" in msg:
-            print("Admin " + str(number) + " used the sendHelp command")
-            splitParts = rawRequest.lower().replace(" ", " ").split(":")
-            sendText(str(splitParts[1]), "From admin - " + str(splitParts[2]))
-            return True
-        elif "banhelp" in msg:
-            print("Admin " + str(number) + " used the banHelp command")
-            bannedNums = []
-            with open('bannedNumbers.txt', 'r') as banFile:
-                for line in banFile:
-                    # remove linebreak which is the last character of the string
-                    addBan = line[:-1]
-                    bannedNums.append(addBan)
-            bannedNums.append(msg[msg.index("banhelp") + 1])
-            with open('bannedNumbers.txt', 'w') as banFile:
-                for bannedNumber in bannedNums:
-                    banFile.write('%s\n' % bannedNumber)
-            return True
-        elif "updateavg" in msg:
-            print("Admin " + str(number) + " used the updateavg command")
-            null = None
-            false = False
-            true = True
-            eventr = requests.get(apiURL + "event/?season_key=1819", headers=apiHeaders)
-            eventsList = eventr.json()
-            autoSum = 0
-            teleOpSum = 0
-            filledEvents = 0
-            for i in range(len(eventsList)):
-                if "2019-02-02" in eventsList[i]["start_date"]:
-                    print(eventsList[i]["event_name"])
-                    matchr = requests.get(apiURL + "event/" + eventsList[i]["event_key"] + "/matches",
-                                          headers=apiHeaders)
-                    matchList = matchr.json()
-                    addToAuto = 0
-                    addToTele = 0
-                    for a in range(len(matchList)):
-                        addToAuto += ((matchList[a]["red_auto_score"] + matchList[a]["blue_auto_score"]) / 2)
-                        addToTele += ((matchList[a]["red_tele_score"] + matchList[a]["blue_tele_score"] + matchList[a][
-                            "red_end_score"] + matchList[a]["blue_end_score"]) / 4)
-                    if len(matchList) != 0:
-                        filledEvents += 1
-                        autoSum += addToAuto / len(matchList)
-                        teleOpSum += addToTele / len(matchList)
-            autoSum = autoSum / filledEvents
-            teleOpSum = teleOpSum / filledEvents
-            print("Average auto score - " + str(autoSum) + " || Average TeleOp score - " + str(
-                teleOpSum) + " || Average score - " + str(autoSum + teleOpSum))
-            return True
-        else:
-            return False
     else:
         return False
 
@@ -1784,11 +1789,16 @@ def metricTwoGet():  # Retrieves metrics
 
 def loadAdminList():  # Loads admin numbers off admin.json
     global adminList
+    global eventAdminList
     adminList = []
+    eventAdminList = []
     with open("admin.json", "r") as read_file:
         data = json.load(read_file)
     for i in range(len(data["fileAdminList"])):
         adminList.append(str(data["fileAdminList"][i]["admin_num"]))
+        eventAdminList.append(str(data["fileAdminList"][i]["admin_num"]))
+    for i in range(len(data["fileEventAdminList"])):
+        eventAdminList.append(str(data["fileEventAdminList"][i]["admin_num"]))
     print(str(adminList))
 
 
@@ -1805,7 +1815,7 @@ def loadTwilio():  # Loads Twilio account info off twilio.json
                   'X-Application-Origin': 'TOAText'}
 
 
-def loadAllTeams():  # Loads Twilio account info off twilio.json
+def loadAllTeams():  # Requests list of all teams to be stored for string matching
     global allTeams
     print("All teams requested")
     teamsR = requests.get(apiURL + "team/",
