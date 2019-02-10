@@ -236,9 +236,9 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
             adminHelpStr = ""
             if number in adminList:
-                adminHelpStr += "Available admin requests are: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, updateAdmins; "
+                adminHelpStr += "Admin requests: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, updateAdmins; "
             if number in eventAdminList:
-                adminHelpStr += "Available event admin requests are: toggleLive, liveskip, livequalmode"
+                adminHelpStr += "Event requests: toggleLive, liveskip, livequalmode"
                 sendText(number, adminHelpStr)
             sendText(number,
                      "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
