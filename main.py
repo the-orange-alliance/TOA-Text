@@ -70,6 +70,11 @@ liveScoreListThree = []
 liveSkipThree = False
 liveQualModeThree = False
 
+#FTCScores live scoring
+FTCScoresRunning = False
+FTCScoresMatchKey = ""
+FTCScoresList = []
+
 mainNum = ""
 secNum = ""
 class myThread(threading.Thread):  # Thread created upon request
@@ -121,6 +126,17 @@ class liveScoringThreadThree(threading.Thread):  # Thread created for live scori
         checkLiveScoringThree()
         sendText(self.startingUser, "Live scoring 3 has shut down successfully")
         print("Live scoring ended Three")
+
+class FTCScoresThread(threading.Thread):  # Thread created for FTCScores
+    def __init__(self, name, startingUser):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.startingUser = startingUser
+    def run(self):
+        print("Starting live scoring FTCScores")
+        checkLiveScoringFTCScores()
+        sendText(self.startingUser, "Live scoring FTCScores has shut down successfully")
+        print("Live scoring ended FTCScores")
 
 
 @app.route("/sms", methods=['POST'])
@@ -315,6 +331,17 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
         elif number not in liveScoreListTwo:
             liveScoreListTwo.append(number)
             sendText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
+            sendText(number,
+                     "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
+        return True
+    if "addliveftcscores" in splitParts:
+        print(str(number) + " Used AddLive2")
+        if number in FTCScoresList:
+            FTCScoresList.remove(number)
+            sendText(number, "You have been removed from the live scoring alerts")
+        elif number not in FTCScoresList:
+            FTCScoresList.append(number)
+            sendText(number, "You have been added to the live scoring alerts. Send FTCScoresList again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
@@ -1219,6 +1246,52 @@ def checkLiveScoringThree():  # live scoring channel 3
     liveScoreListThree = []
     liveScoreRunningThree = False
 
+def checkLiveScoringFTCScores():  # live scoring channel 3
+    global FTCScoresRunning
+    global FTCScoresMatchKey
+    global FTCScoresList
+    global liveSkipThree
+    currentMatch = 0
+    FTCScoresRunning = True
+    FTCScoresApi = "https://api.ftcscores.com/api/"
+    while FTCScoresRunning:
+        time.sleep(2)
+        r = requests.get(FTCScoresApi + "events/" + str(FTCScoresMatchKey))
+        if int(r.json()["matches"][currentMatch]["scores"]["red"]) > 0 or int(r.json()["matches"][currentMatch]["scores"]["blue"]) > 0:
+            redOne = str(r.json()["matches"][currentMatch]["teams"]["red"][0]["number"])
+            redTwo = str(r.json()["matches"][currentMatch]["teams"]["red"][1]["number"])
+            blueOne = str(r.json()["matches"][currentMatch]["teams"]["blue"][0]["number"])
+            blueTwo = str(r.json()["matches"][currentMatch]["teams"]["blue"][1]["number"])
+            print(str(liveMatchKeyThree) + " - Qual match " + str(currentMatch) + " ended")
+            queuingStr = ""
+            try:
+                redOneNext = str(r.json()["matches"][currentMatch+1]["teams"]["red"][0]["number"])
+                redTwoNext = str(r.json()["matches"][currentMatch+1]["teams"]["red"][1]["number"])
+                blueOneNext = str(r.json()["matches"][currentMatch+1]["teams"]["blue"][0]["number"])
+                blueTwoNext = str(r.json()["matches"][currentMatch+1]["teams"]["blue"][1]["number"])
+                queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                    redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
+                redOneExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["red"][0]["number"])
+                redTwoExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["red"][1]["number"])
+                blueOneExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["blue"][0]["number"])
+                blueTwoExtra = str(r.json()["matches"][currentMatch + 2]["teams"]["blue"][1]["number"])
+                queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                    redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
+                    blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
+            except KeyError:
+                print("KeyError")
+                continue
+            for i in liveScoreListThree:
+                metricCount(12)
+                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                sendText(i, queuingStr)
+            currentMatch += 1
+    FTCScoresMatchKey = ""
+    FTCScoresList = []
+    FTCScoresRunning = False
+
 
 def getTeamMatches(number, splitParts):  # Code to view a teams matches
     def redcompileinfo(jsonInfo):
@@ -1574,6 +1647,9 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     global liveScoreListThree
     global liveScoreRunningThree
     global liveSkipThree
+    global FTCScoresList
+    global FTCScoresMatchKey
+    global FTCScoresRunning
     global helpNumList
     if number in adminList:
         if "freeze" in msg:  # Disable or enable
@@ -1736,6 +1812,22 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             else:
                 sendText(number, "ToggleLive missing match key [toggleLive:(matchKey)]")
                 return True
+        elif "toggleftcscores" in msg:
+            print("Admin " + str(number) + " used the toggleLive3 command")
+            msg = rawRequest.split(" ")
+            if FTCScoresRunning:
+                sendText(number, "You have manually ended live scoring alert thread 3")
+                FTCScoresMatchKey = ""
+                FTCScoresList = []
+                FTCScoresRunning = False
+            elif not FTCScoresRunning:
+                FTCScoresRunning = True
+                sendText(number, "You have started live scoring alert FTCScores")
+                FTCScoresMatchKey = str(msg[msg.index("toggleftcscores") + 1])
+                FTCScoresList.append(str(number))
+                FTCScoresThreadA = FTCScoresThread("LiveThreadFTCScores", str(number))
+                FTCScoresThreadA.start()
+            return True
         elif "skiplive" in msg:
             liveSkip = True
             print("Admin " + str(number) + " used the skipLive command")
