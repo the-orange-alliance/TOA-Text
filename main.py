@@ -1944,15 +1944,20 @@ def loadAllTeams():  # Requests list of all teams to be stored for string matchi
 def optOutIn(userNum, splitParts):
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
+    number = userNum
     userNum = userNum[1:]
     if userNum not in phoneDB:
         refDB.child(userNum).set({'opted': True})
         print("Phone number added to DB")
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
+        sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin")
         print(str(userNum) + " has opted out")
+        return True
     elif "start" in splitParts:
         refDB.child(userNum).update({'opted': True})
+        sendText(number, "You have now rejoined TOAText and can use all the features")
+        return True
     if not phoneDB[userNum]['opted']:
         print("User has opted out")
         return True
