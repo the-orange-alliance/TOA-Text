@@ -8,6 +8,14 @@ import json
 import time
 from flask import Flask, request
 from fuzzywuzzy import fuzz
+import firebase_admin
+from firebase_admin import credentials
+from firebase_admin import db
+
+cred = credentials.Certificate('TOAFirebase.json')
+default_app = firebase_admin.initialize_app(cred, {
+    'databaseURL': 'https://dev-db-the-orange-alliance-30064.firebaseio.com/'
+})
 
 app = Flask(__name__)
 apiURL = "http://35.202.99.121/api/"
@@ -163,9 +171,6 @@ def sendText(number, msg):  # Code to send outgoing text
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
-    if number in optOutNums["numbers"]:
-        print("A blocked number ("+str(number)+") tried to make a request")
-        return
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
@@ -273,8 +278,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
     elif "about" in splitParts:
         sendText(number,
                  "TOAText is a portable, on-the-go version of The Orange Alliance. It can provide information about teams, along with statistics")
-        sendText(number, "Created by Team 15692 in collaboration with The Orange Alliance")
-        sendText(number, "Special thanks to Dominic Hupp for maintaining this project")
+        sendText(number, "Created by Team 15692 in collaboration with The Orange Alliance. Special thanks to Dominic Hupp for maintaining this project")
         sendText(number, "To know more about any commands, use ?:[command] or helpme:[command]")
         return True
     elif "newcmds" in splitParts:
@@ -1937,49 +1941,30 @@ def loadAllTeams():  # Requests list of all teams to be stored for string matchi
     allTeams = teamsR.json()
     print("Recieved all teams")
 
-def loadOptOuts():  # Requests list of all teams to be stored for string matching
-    global optOutNums
-    with open("optout.json", "r") as read_file:
-        data = json.load(read_file)
-    optOutNums = data
-    print("Loaded all optOut numbers")
-
-def optOutIn(number, splitParts):
-    global optOutNums
-    trigger = False
-    if "stop" in splitParts or "quit" in splitParts and number not in optOutNums["numbers"]:
-        optOutNums["numbers"].append(number)
-        sendText(number, "You will no longer receive messages from or be able to use TOAText")
-        trigger = True
-        print(str(number) + " is now on the opt out list.")
-    elif "stop" in splitParts:
-        trigger = True
-        print(str(number) + " was already on the opt out list.")
-    elif "start" in splitParts and number in optOutNums["numbers"]:
-        trigger = True
-        sendText(number, "You may now use TOAText again")
-        optOutNums["numbers"].remove(number)
-        print(str(number) + " is now off the opt out list.")
+def optOutIn(userNum, splitParts):
+    refDB = db.reference('Phones')
+    phoneDB = refDB.order_by_key().get()
+    userNum = userNum[1:]
+    if userNum not in phoneDB:
+        refDB.child(userNum).set({'opted': True})
+        print("Phone number added to DB")
+    if "quit" in splitParts or "stop" in splitParts:
+        refDB.child(userNum).update({'opted': False})
+        print(str(userNum) + " has opted out")
     elif "start" in splitParts:
-        print(str(number) + " was already off the opt out list.")
-        sendText(number, "You were already able to use TOAText")
+        refDB.child(userNum).update({'opted': True})
+    if not phoneDB[userNum]['opted']:
+        print("User has opted out")
         return True
-    if trigger:
-        with open("optout.json", "w") as write_file:
-            json.dump(optOutNums, write_file)
-        return True
-    if not trigger and number in optOutNums["numbers"]:
-        print("A blocked number (" + str(number) + ") tried to make a request")
-        return True
-
-
+    else:
+        print("User can recieve texts")
+        return False
 
 if __name__ == "__main__":  # starts the whole program
     print("started")
     loadAdminList()
     loadTwilio()
     loadAllTeams()
-    loadOptOuts()
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
     sendText(str(adminList[0]), "TOAText finished bootup sequence")
     pingList.append(str(adminList[0]))
