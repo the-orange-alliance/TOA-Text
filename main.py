@@ -1959,10 +1959,9 @@ def optOutIn(userNum, splitParts):
         sendText(number, "You have now rejoined TOAText and can use all the features")
         return True
     if not phoneDB[userNum]['opted']:
-        print("User has opted out")
+        print("An opted out user (" + str(number) + ") has tried to make a request")
         return True
     else:
-        print("User can recieve texts")
         return False
 
 if __name__ == "__main__":  # starts the whole program
