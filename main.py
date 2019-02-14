@@ -1961,6 +1961,10 @@ def optOutIn(userNum, splitParts):
     if userNum not in phoneDB:
         refDB.child(userNum).set({'opted': True})
         print("Phone number added to DB")
+        refDB = db.reference('Phones')
+        phoneDB = refDB.order_by_key().get()
+        number = userNum
+        userNum = userNum[1:]
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
         sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin")
