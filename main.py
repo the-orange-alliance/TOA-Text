@@ -405,7 +405,8 @@ def returnErrorMsg(error, number):  # Error messages
                  "Baby are you a swerve drive 'cause you spin me right round", "Are you a compass?  Because you're a-cute and I love having you around",
                  "Hey baby, are you a soldering iron because I melt when I see you", "You're FIRST in my heart", "Are you FTC? Because I'll care about you when nobody else will",
                  "Are you a robot, cause you just drove away with my heart", "Not in elims? You're always the first seed in my heart!!",
-                 "Are you hook and loop tape? Because I think I'm stuck on you", "Are you a gear? Cause picking you up is my goal"]
+                 "Are you hook and loop tape? Because I think I'm stuck on you", "Are you the end game of Rover Ruckus, because I just wanna hang out",
+                 "Are you a mineral? Cause picking you up is my goal"]
     randomNum = rand.randint(0, len(errorList)-1)
     errorMsgText = errorList[randomNum]
     if error == 'invalTeam':  # Missing Team Arguement
@@ -413,7 +414,7 @@ def returnErrorMsg(error, number):  # Error messages
     if error == 'falseArg':  # Uses only unreal args
         errorMsgText += " (EC2)"
     if error != "valDay":
-        errorMsgText += "  [For help, text 'helpme' or '?']"
+        errorMsgText += "  [For help, text 'help' or '?']"
     sendText(number, errorMsgText)
 
 
