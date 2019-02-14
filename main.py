@@ -284,6 +284,10 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
     elif "newcmds" in splitParts:
         sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN")
         return True
+    elif "pickup" in splitParts:
+        returnErrorMsg("valDay", number)
+        print("User used pickup command")
+        return True
     elif "checklives" in splitParts:
         runningKeys = ""
         if liveMatchKey == "":
@@ -408,7 +412,8 @@ def returnErrorMsg(error, number):  # Error messages
         errorMsgText += " (EC1)"
     if error == 'falseArg':  # Uses only unreal args
         errorMsgText += " (EC2)"
-    errorMsgText += "  [For help, text 'helpme' or '?']"
+    if error != "valDay":
+        errorMsgText += "  [For help, text 'helpme' or '?']"
     sendText(number, errorMsgText)
 
 
