@@ -18,7 +18,7 @@ default_app = firebase_admin.initialize_app(cred, {
 })
 
 app = Flask(__name__)
-apiURL = "http://theorangealliance.com/api/"
+apiURL = "http://theorangealliance.org/api/"
 
 apiHeaders = {'content-type': 'application/json',
               'X-TOA-KEY': '',
