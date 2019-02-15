@@ -866,7 +866,7 @@ def checkLiveScoring():  # live scoring channel 1
                         for i in eventNumDB:
                             i = "+" + i
                             metricCount(12)
-                            if loop >= 0:
+                            if loop >= 3:
                                 sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
                                     r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
                                     r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
