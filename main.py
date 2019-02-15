@@ -1838,7 +1838,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                         liveScoreRunning = False
                     elif not liveScoreRunning:
                         liveScoreRunning = True
-                        sendText(number, "You have started live scoring alert thread")
+                        sendText(number, "You have started a live scoring alert thread")
                         liveMatchKey = str(msg[msg.index("togglelive") + 1]).upper()
                         refDB = db.reference('liveEvents/'+str(liveMatchKey))
                         refDB.update({str(number[1:]): True})
@@ -1856,12 +1856,12 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             if "1819" in msg[msg.index("togglelive2") + 1]:
                 print("Admin " + str(number) + " used the toggleLive2 command")
                 if liveScoreRunningTwo:
-                    sendText(number, "You have manually ended live scoring alert thread 1")
+                    sendText(number, "You have manually ended live scoring alert thread 2")
                     liveMatchKeyTwo = ""
                     liveScoreRunningTwo = False
                 elif not liveScoreRunningTwo:
                     liveScoreRunningTwo = True
-                    sendText(number, "You have started live scoring alert thread")
+                    sendText(number, "You have started a live scoring alert thread")
                     liveMatchKeyTwo = str(msg[msg.index("togglelive2") + 1]).upper()
                     refDB = db.reference('liveEvents/' + str(liveMatchKeyTwo).upper())
                     refDB.update({str(number[1:]): True})
@@ -1876,12 +1876,12 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             if "1819" in msg[msg.index("togglelive3") + 1]:
                 print("Admin " + str(number) + " used the toggleLive3 command")
                 if liveScoreRunningThree:
-                    sendText(number, "You have manually ended live scoring alert thread 1")
+                    sendText(number, "You have manually ended live scoring alert thread 3")
                     liveMatchKeyThree = ""
                     liveScoreRunningThree = False
                 elif not liveScoreRunningThree:
                     liveScoreRunningThree = True
-                    sendText(number, "You have started live scoring alert thread")
+                    sendText(number, "You have started a live scoring alert thread")
                     liveMatchKeyThree = str(msg[msg.index("togglelive3") + 1]).upper()
                     refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
                     refDB.update({str(number[1:]): True})
