@@ -14,7 +14,7 @@ from firebase_admin import db
 
 cred = credentials.Certificate('TOAFirebase.json')
 default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://dev-db-the-orange-alliance-30064.firebaseio.com/+'
+    'databaseURL': 'https://the-orange-alliance.firebaseio.com/'
 })
 
 app = Flask(__name__)
