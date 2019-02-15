@@ -285,7 +285,21 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN")
         return True
     elif "pickup" in splitParts:
-        returnErrorMsg("valDay", number)
+        pickupList = ["Baby, are you FTC? Because everyone overlooks you and they shouldn't",
+                     "Are you a tank drive? Cause I'd pick you every time",
+                     "Are you a rivet, because without you I'd fall apart",
+                     "Don't call me Java, because I'll never treat you like an object",
+                     "Baby are you a swerve drive 'cause you spin me right round",
+                     "Are you a compass?  Because you're a-cute and I love having you around",
+                     "Hey baby, are you a soldering iron because I melt when I see you", "You're FIRST in my heart",
+                     "Are you FTC? Because I'll care about you when nobody else will",
+                     "Are you a robot, cause you just drove away with my heart",
+                     "Not in elims? You're always the first seed in my heart!!",
+                     "Are you hook and loop tape? Because I think I'm stuck on you",
+                     "Are you the end game of Rover Ruckus, because I just wanna hang out",
+                     "Are you a mineral? Cause picking you up is my goal"]
+        randomNum = rand.randint(0, len(pickupList) - 1)
+        sendText(number, pickupList[randomNum])
         print("User used pickup command")
         return True
     elif "checklives" in splitParts:
@@ -404,19 +418,12 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
 
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
-    '''errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
+    errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
              "I must be a swerve drive, because apparently I never work!", "Hey there! Thats not very nice of you!",
              "Just remember, goBILDA or go home", "... Bestrix.",
              "Hold your horses, that's not very GP of you",
              "Try again. The delivery robot strafed the wrong direction",
-             "I'm still waiting... and waiting... and waiting"]'''
-    errorList = ["Baby, are you FTC? Because everyone overlooks you and they shouldn't", "Are you a tank drive? Cause I'd pick you every time",
-                 "Are you a rivet, because without you I'd fall apart", "Don't call me Java, because I'll never treat you like an object",
-                 "Baby are you a swerve drive 'cause you spin me right round", "Are you a compass?  Because you're a-cute and I love having you around",
-                 "Hey baby, are you a soldering iron because I melt when I see you", "You're FIRST in my heart", "Are you FTC? Because I'll care about you when nobody else will",
-                 "Are you a robot, cause you just drove away with my heart", "Not in elims? You're always the first seed in my heart!!",
-                 "Are you hook and loop tape? Because I think I'm stuck on you", "Are you the end game of Rover Ruckus, because I just wanna hang out",
-                 "Are you a mineral? Cause picking you up is my goal"]
+             "I'm still waiting... and waiting... and waiting"]
     randomNum = rand.randint(0, len(errorList)-1)
     errorMsgText = errorList[randomNum]
     if error == 'invalTeam':  # Missing Team Arguement
