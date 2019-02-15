@@ -1807,7 +1807,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             teleOpSum = 0
             filledEvents = 0
             for i in range(len(eventsList)):
-                if "2019-02-02" in eventsList[i]["start_date"]:
+                if "2019-02-09" in eventsList[i]["start_date"]:
                     print(eventsList[i]["event_name"])
                     matchr = requests.get(apiURL + "event/" + eventsList[i]["event_key"] + "/matches",
                                           headers=apiHeaders)
