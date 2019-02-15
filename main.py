@@ -326,7 +326,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
     if "addlive" in splitParts and liveMatchKey != "":
         print(str(number) + " Used AddLive")
         refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
-        eventDB = list(refDB.order_by_key().get().keys())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
@@ -345,7 +348,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
     if "addlive2" in splitParts and liveMatchKeyTwo != "":
         print(str(number) + " Used AddLive2")
         refDB = db.reference('liveEvents/' + str(liveMatchKeyTwo).upper())
-        eventDB = list(refDB.order_by_key().get().keys())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
@@ -375,7 +381,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
     if "addlive3" in splitParts and liveMatchKeyThree != "":
         print(str(number) + " Used AddLive3")
         refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
-        eventDB = list(refDB.order_by_key().get().keys())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
