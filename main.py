@@ -331,7 +331,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
-            refDB.update({str(number[1:]): True})
+            try:
+                refDB.update({str(number[1:]): True})
+            except AttributeError:
+                refDB.set({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -347,7 +350,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
-            refDB.update({str(number[1:]): True})
+            try:
+                refDB.update({str(number[1:]): True})
+            except AttributeError:
+                refDB.set({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -374,7 +380,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
-            refDB.update({str(number[1:]): True})
+            try:
+                refDB.update({str(number[1:]): True})
+            except AttributeError:
+                refDB.set({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive3 again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
