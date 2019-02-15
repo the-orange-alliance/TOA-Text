@@ -14,7 +14,7 @@ from firebase_admin import db
 
 cred = credentials.Certificate('TOAFirebase.json')
 default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://the-orange-alliance.firebaseio.com/'
+    'databaseURL': 'https://dev-db-the-orange-alliance-30064.firebaseio.com/'
 })
 
 app = Flask(__name__)
@@ -211,7 +211,7 @@ command_descriptions = {
                  "Use format [team#]:matchInfo:topThree to return details about their top three matches",
     "livestats": "Can be used if event is running on live Channel 1 (Check with checklives)" +
                  "Use format [team#]:livestats:ranking to return a teams current ranking " +
-                 "Use format [team#]:livestats:matches to return all matches a team has played in",
+                 "Use format [team#]:livestats:topteams to return the top 3 teams at the tournament/event",
     "sendhelp": "pings admins in help list with your number and issue",
     "avgtotalscore": "responds with average auto and teleOp scores for previous weekend",
     "avgtotalpoints": "responds with average auto and teleOp scores for previous weekend",
@@ -325,15 +325,13 @@ def avgPoints(number, splitParts):  # Average total points
 def addLive(number, splitParts):  # Adds users to live alert threads One, Two, or Three
     if "addlive" in splitParts:
         print(str(number) + " Used AddLive")
-        if number in liveScoreList:
-            del liveScoreScores[liveScoreList.index(number)]
-            del liveScorePredict[liveScoreList.index(number)]
-            liveScoreList.remove(number)
+        refDB = db.reference('liveEvents/' + str(liveMatchKey))
+        eventDB = refDB.order_by_key().get().keys()
+        if number in eventDB:
+            refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
         elif number not in liveScoreList:
-            liveScoreList.append(number)
-            liveScorePredict.append(0)
-            liveScoreScores.append(0)
+            refDB.update({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -755,6 +753,7 @@ def checkLiveScoring():  # live scoring channel 1
     global liveSkip
     liveSkip = False
     currentMatch = 1
+    loop = 0
     r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunning:  # Keeps it running if no match schedule has been uploaded
@@ -766,6 +765,7 @@ def checkLiveScoring():  # live scoring channel 1
             break
     while liveScoreRunning:
         time.sleep(10)
+        loop += 1
         if liveSkip:
             liveSkip = False
             currentMatch += 1
@@ -846,21 +846,18 @@ def checkLiveScoring():  # live scoring channel 1
                     except KeyError:
                         print("KeyError")
                         continue
+                    refDB = db.reference('liveEvents/'+str(liveMatchKey))
+                    eventNumDB = refDB.order_by_key().get()
                     for i in liveScoreList:
+                        i = "+" + i
                         metricCount(12)
-                        if liveScorePredict[liveScoreList.index(i)] == 1 and r.json()[0]["red_score"] > r.json()[0][
-                            "blue_score"]:
-                            liveScoreScores[liveScoreList.index(i)] += 1
-                            liveScorePredict[liveScoreList.index(i)] = 0
-                        elif liveScorePredict[liveScoreList.index(i)] == 2 and r.json()[0]["red_score"] < r.json()[0][
-                            "blue_score"]:
-                            liveScoreScores[liveScoreList.index(i)] += 1
-                            liveScorePredict[liveScoreList.index(i)] = 0
-                        sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                        sendText(i, queuingStr)
+                        if loop > 3:
+                            sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            sendText(i, queuingStr)
                     currentMatch += 1
+                    loop = 0
         except KeyError:
             if not liveQualMode:
                 break
@@ -910,7 +907,10 @@ def checkLiveScoring():  # live scoring channel 1
                                     blueTwo = personR.json()[i]["team_key"]
                     print(str(liveMatchKey) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
+                    refDB = db.reference('liveEvents/' + str(liveMatchKey))
+                    eventNumDB = refDB.order_by_key().get()
                     for i in liveScoreList:
+                        i = "+" + i
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
                             r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
@@ -1780,17 +1780,14 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                     if liveScoreRunning:
                         sendText(number, "You have manually ended live scoring alert thread 1")
                         liveMatchKey = ""
-                        liveScoreList = []
-                        liveScorePredict = []
-                        liveScoreScores = []
                         liveScoreRunning = False
                     elif not liveScoreRunning:
                         liveScoreRunning = True
                         sendText(number, "You have started live scoring alert thread")
-                        liveMatchKey = str(msg[msg.index("togglelive") + 1])
-                        liveScoreList.append(str(number))
-                        liveScorePredict.append(int(0))
-                        liveScoreScores.append(int(0))
+                        liveMatchKey = str(msg[msg.index("togglelive") + 1]).upper()
+                        refDB = db.reference('liveEvents/'+str(liveMatchKey))
+                        refDB.update({str(number[1:]): True})
+                        print("Phone number added to DB")
                         liveThread = liveScoringThread("LiveThread", str(number))
                         liveThread.start()
                     return True
