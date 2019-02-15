@@ -14,7 +14,7 @@ from firebase_admin import db
 
 cred = credentials.Certificate('TOAFirebase.json')
 default_app = firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://dev-db-the-orange-alliance-30064.firebaseio.com/'
+    'databaseURL': 'https://dev-db-the-orange-alliance-30064.firebaseio.com/+'
 })
 
 app = Flask(__name__)
@@ -325,12 +325,12 @@ def avgPoints(number, splitParts):  # Average total points
 def addLive(number, splitParts):  # Adds users to live alert threads One, Two, or Three
     if "addlive" in splitParts:
         print(str(number) + " Used AddLive")
-        refDB = db.reference('liveEvents/' + str(liveMatchKey))
-        eventDB = refDB.order_by_key().get().keys()
+        refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
+        eventDB = list(refDB.order_by_key().get().keys())
         if number in eventDB:
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
-        elif number not in liveScoreList:
+        elif number not in eventDB:
             refDB.update({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
             sendText(number,
@@ -847,11 +847,11 @@ def checkLiveScoring():  # live scoring channel 1
                         print("KeyError")
                         continue
                     refDB = db.reference('liveEvents/'+str(liveMatchKey))
-                    eventNumDB = refDB.order_by_key().get()
-                    for i in liveScoreList:
+                    eventNumDB = list(refDB.order_by_key().get().keys())
+                    for i in eventNumDB:
                         i = "+" + i
                         metricCount(12)
-                        if loop > 3:
+                        if loop >= 0:
                             sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
                                 r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
                                 r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
