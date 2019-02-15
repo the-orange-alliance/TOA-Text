@@ -327,10 +327,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
         print(str(number) + " Used AddLive")
         refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
         eventDB = list(refDB.order_by_key().get().keys())
-        if number in eventDB:
+        if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
-        elif number not in eventDB:
+        elif number[1:] not in eventDB:
             refDB.update({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
             sendText(number,
