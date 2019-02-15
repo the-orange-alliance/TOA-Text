@@ -858,15 +858,19 @@ def checkLiveScoring():  # live scoring channel 1
                         print("KeyError")
                         continue
                     refDB = db.reference('liveEvents/'+str(liveMatchKey).upper())
-                    eventNumDB = list(refDB.order_by_key().get().keys())
-                    for i in eventNumDB:
-                        i = "+" + i
-                        metricCount(12)
-                        if loop >= 0:
-                            sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                            sendText(i, queuingStr)
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            if loop >= 0:
+                                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                                sendText(i, queuingStr)
                     currentMatch += 1
                     loop = 0
         except KeyError:
@@ -919,14 +923,18 @@ def checkLiveScoring():  # live scoring channel 1
                     print(str(liveMatchKey) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
                     refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
-                    eventNumDB = list(refDB.order_by_key().get().keys())
-                    for i in eventNumDB:
-                        i = "+" + i
-                        metricCount(12)
-                        sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                        # Send score of prev match
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            # Send score of prev match
                         # Get next 2 match competitors
                         # Get prev match competitors
                     currentMatch += 1
@@ -1041,15 +1049,19 @@ def checkLiveScoringTwo():  # live scoring channel 2
                         print("KeyError")
                         continue
                     refDB = db.reference('liveEvents/' + str(str(liveMatchKeyTwo).upper()))
-                    eventNumDB = list(refDB.order_by_key().get().keys())
-                    for i in eventNumDB:
-                        i = "+" + i
-                        metricCount(12)
-                        if loop >= 3:
-                            sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                            sendText(i, queuingStr)
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            if loop >= 3:
+                                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                                sendText(i, queuingStr)
                     currentMatch += 1
                     loop = 0
         except KeyError:
@@ -1102,13 +1114,17 @@ def checkLiveScoringTwo():  # live scoring channel 2
                     print(str(liveMatchKeyTwo) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
                     refDB = db.reference('liveEvents/' + str(liveMatchKeyTwo).upper())
-                    eventNumDB = list(refDB.order_by_key().get().keys())
-                    for i in eventNumDB:
-                        i = "+" + i
-                        metricCount(12)
-                        sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         # Send score of prev match
                         # Get next 2 match competitors
                         # Get prev match competitors
@@ -1222,15 +1238,19 @@ def checkLiveScoringThree():  # live scoring channel 3
                         print("KeyError")
                         continue
                     refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
-                    eventNumDB = list(refDB.order_by_key().get().keys())
-                    for i in eventNumDB:
-                        i = "+" + i
-                        metricCount(12)
-                        if loop >= 3:
-                            sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                        sendText(i, queuingStr)
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            if loop >= 3:
+                                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            sendText(i, queuingStr)
                     currentMatch += 1
                     loop = 0
         except KeyError:
@@ -1283,14 +1303,18 @@ def checkLiveScoringThree():  # live scoring channel 3
                     print(str(liveMatchKeyThree) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
                     refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
-                    eventNumDB = list(refDB.order_by_key().get().keys())
-                    for i in eventNumDB:
-                        i = "+" + i
-                        metricCount(12)
-                        sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                        # Send score of prev match
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            # Send score of prev match
                         # Get next 2 match competitors
                         # Get prev match competitors
                     currentMatch += 1
