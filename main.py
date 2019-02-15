@@ -338,11 +338,13 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
         return True
     if "addlive2" in splitParts:
         print(str(number) + " Used AddLive2")
-        if number in liveScoreListTwo:
-            liveScoreListTwo.remove(number)
+        refDB = db.reference('liveEvents/' + str(liveMatchKeyTwo).upper())
+        eventDB = list(refDB.order_by_key().get().keys())
+        if number[1:] in eventDB:
+            refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
-        elif number not in liveScoreListTwo:
-            liveScoreListTwo.append(number)
+        elif number[1:] not in eventDB:
+            refDB.update({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -360,12 +362,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
         return True
     if "addlive3" in splitParts:
         print(str(number) + " Used AddLive3")
-        if number in liveScoreListThree:
-            liveScoreListThree.remove(number)
+        refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
+        eventDB = list(refDB.order_by_key().get().keys())
+        if number[1:] in eventDB:
+            refDB.update({str(number[1:]): None})
             sendText(number, "You have been removed from the live scoring alerts")
-        elif number not in liveScoreListThree:
-            liveScoreListThree.append(number)
-            sendText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
+        elif number[1:] not in eventDB:
+            refDB.update({str(number[1:]): True})
+            sendText(number, "You have been added to the live scoring alerts. Send addLive3 again to be removed")
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
@@ -846,7 +850,7 @@ def checkLiveScoring():  # live scoring channel 1
                     except KeyError:
                         print("KeyError")
                         continue
-                    refDB = db.reference('liveEvents/'+str(liveMatchKey))
+                    refDB = db.reference('liveEvents/'+str(liveMatchKey).upper())
                     eventNumDB = list(refDB.order_by_key().get().keys())
                     for i in eventNumDB:
                         i = "+" + i
@@ -907,9 +911,9 @@ def checkLiveScoring():  # live scoring channel 1
                                     blueTwo = personR.json()[i]["team_key"]
                     print(str(liveMatchKey) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
-                    refDB = db.reference('liveEvents/' + str(liveMatchKey))
-                    eventNumDB = refDB.order_by_key().get()
-                    for i in liveScoreList:
+                    refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
+                    eventNumDB = list(refDB.order_by_key().get().keys())
+                    for i in eventNumDB:
                         i = "+" + i
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
@@ -936,6 +940,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
     global liveScoreRunningTwo
     global liveSkipTwo
     currentMatch = 1
+    loop = 0
     r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunningTwo:  # Keeps it running if no match schedule has been uploaded
@@ -947,6 +952,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
             break
     while liveScoreRunningTwo:
         time.sleep(2)
+        loop += 1
         if liveSkipTwo:
             liveSkipTwo = False
             currentMatch += 1
@@ -1027,13 +1033,18 @@ def checkLiveScoringTwo():  # live scoring channel 2
                     except KeyError:
                         print("KeyError")
                         continue
-                    for i in liveScoreListTwo:
+                    refDB = db.reference('liveEvents/' + str(str(liveMatchKeyTwo).upper()))
+                    eventNumDB = list(refDB.order_by_key().get().keys())
+                    for i in eventNumDB:
+                        i = "+" + i
                         metricCount(12)
-                        sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
-                        sendText(i, queuingStr)
+                        if loop >= 3:
+                            sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            sendText(i, queuingStr)
                     currentMatch += 1
+                    loop = 0
         except KeyError:
             if not liveQualModeTwo:
                 break
@@ -1083,7 +1094,10 @@ def checkLiveScoringTwo():  # live scoring channel 2
                                     blueTwo = personR.json()[i]["team_key"]
                     print(str(liveMatchKeyTwo) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
-                    for i in liveScoreListTwo:
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyTwo).upper())
+                    eventNumDB = list(refDB.order_by_key().get().keys())
+                    for i in eventNumDB:
+                        i = "+" + i
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
                             r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
@@ -1107,6 +1121,7 @@ def checkLiveScoringThree():  # live scoring channel 3
     global liveScoreRunningThree
     global liveSkipThree
     currentMatch = 1
+    loop = 0
     r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunningThree:  # Keeps it running if no match schedule has been uploaded
@@ -1118,6 +1133,7 @@ def checkLiveScoringThree():  # live scoring channel 3
             break
     while liveScoreRunningThree:
         time.sleep(2)
+        loop += 1
         if liveSkipThree:
             liveSkipThree = False
             currentMatch += 1
@@ -1198,13 +1214,18 @@ def checkLiveScoringThree():  # live scoring channel 3
                     except KeyError:
                         print("KeyError")
                         continue
-                    for i in liveScoreListThree:
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
+                    eventNumDB = list(refDB.order_by_key().get().keys())
+                    for i in eventNumDB:
+                        i = "+" + i
                         metricCount(12)
-                        sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
-                            r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
-                            r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                        if loop >= 3:
+                            sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
                         sendText(i, queuingStr)
                     currentMatch += 1
+                    loop = 0
         except KeyError:
             if not liveQualModeThree:
                 break
@@ -1254,7 +1275,10 @@ def checkLiveScoringThree():  # live scoring channel 3
                                     blueTwo = personR.json()[i]["team_key"]
                     print(str(liveMatchKeyThree) + " - Elim match " + str(currentMatch) + " ended")
                     previousName = str(r.json()[0]["match_name"])
-                    for i in liveScoreListThree:
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
+                    eventNumDB = list(refDB.order_by_key().get().keys())
+                    for i in eventNumDB:
+                        i = "+" + i
                         metricCount(12)
                         sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
                             r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
