@@ -323,7 +323,7 @@ def avgPoints(number, splitParts):  # Average total points
 
 
 def addLive(number, splitParts):  # Adds users to live alert threads One, Two, or Three
-    if "addlive" in splitParts:
+    if "addlive" in splitParts and liveMatchKey != "":
         print(str(number) + " Used AddLive")
         refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
         eventDB = list(refDB.order_by_key().get().keys())
@@ -336,7 +336,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
-    if "addlive2" in splitParts:
+    elif "addlive" in splitParts:
+        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        return True
+    if "addlive2" in splitParts and liveMatchKeyTwo != "":
         print(str(number) + " Used AddLive2")
         refDB = db.reference('liveEvents/' + str(liveMatchKeyTwo).upper())
         eventDB = list(refDB.order_by_key().get().keys())
@@ -349,6 +352,9 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
+    elif "addlive2" in splitParts:
+        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        return True
     if "addliveftcscores" in splitParts:
         print(str(number) + " Used addliveftcscores")
         if number in FTCScoresList:
@@ -360,7 +366,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
-    if "addlive3" in splitParts:
+    if "addlive3" in splitParts and liveMatchKeyThree != "":
         print(str(number) + " Used AddLive3")
         refDB = db.reference('liveEvents/' + str(liveMatchKeyThree).upper())
         eventDB = list(refDB.order_by_key().get().keys())
@@ -373,24 +379,8 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             sendText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
-    if "predict" in splitParts and number in liveScoreList:
-        print(str(number) + " Used predict")
-        if splitParts[splitParts.index("predict") + 1] == "red":
-            liveScorePredict[liveScoreList.index(str(number))] = 1
-        elif splitParts[splitParts.index("predict") + 1] == "blue":
-            liveScorePredict[liveScoreList.index(str(number))] = 2
-        return True
-    elif "predict" in splitParts:
-        print(str(number) + " Used predict")
-        sendText(number, "You must be in a live scoring queue to predict the match")
-        return True
-    if "getscore" in splitParts and number in liveScoreList:
-        print(str(number) + " Used getscore")
-        sendText(number, "Your current score is: " + str(liveScoreScores[liveScoreList.index(str(number))]))
-        return True
-    elif "getscore" in splitParts:
-        print(str(number) + " Used getscore")
-        sendText(number, "You must be in a live scoring queue to get your prediction score")
+    elif "addlive3" in splitParts:
+        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
 
 
@@ -698,7 +688,6 @@ def playGames(number, splitParts):  # plays flip a coin or RPS
         # 0 beats 2, 1 beats 0, 2 beats 1
         response = "%s (you) vs %s (computer) - " % (expressions[userChoice], expressions[computerChoice])
         result = None
-
         if computerChoice == userChoice:
             result = "Tie"
         elif userChoice == (computerChoice + 1) % 3:
@@ -951,7 +940,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
         if "_code" not in r.json():
             break
     while liveScoreRunningTwo:
-        time.sleep(2)
+        time.sleep(10)
         loop += 1
         if liveSkipTwo:
             liveSkipTwo = False
@@ -1132,7 +1121,7 @@ def checkLiveScoringThree():  # live scoring channel 3
         if "_code" not in r.json():
             break
     while liveScoreRunningThree:
-        time.sleep(2)
+        time.sleep(10)
         loop += 1
         if liveSkipThree:
             liveSkipThree = False
