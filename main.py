@@ -2030,7 +2030,7 @@ def personalizedTeam(number, splitParts):
                 print(UID)
                 userDB = db.reference('Users')
                 userSortDB = userDB.order_by_key().get()
-                sendText("Your team is " + str(userSortDB[UID]["team"]))
+                sendText(number, "Your team is " + str(userSortDB[UID]["team"]))
             else:
                 print("That user exists and has no user ID")
         except:
