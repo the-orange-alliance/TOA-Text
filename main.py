@@ -2027,7 +2027,6 @@ def personalizedTeam(number, splitParts):
         try:
             if phoneDB[userNum]['uid'] != "":
                 UID = str(phoneDB[userNum]['uid'])
-                print(UID)
                 userDB = db.reference('Users')
                 userSortDB = userDB.order_by_key().get()
                 sendText(number, "Your team is " + str(userSortDB[UID]["team"]))
