@@ -2039,7 +2039,7 @@ def personalizedTeam(number, splitParts):
                 try:
                     levelDefinitions = ["General User", "Team/Event Admin", "Regional Admin", "FIRST", "Moderator", "Admin"]
                     if int(userSortDB[UID]["level"]) != 1:
-                        firstMsg += ". Also, you have an account level of" + str(userSortDB[UID]["level"]) + " (" + levelDefinitions[int(userSortDB[UID]["level"])] + ")"
+                        firstMsg += ". Also, you have an account level of" + str(userSortDB[UID]["level"]) + " (" + levelDefinitions[int(userSortDB[UID]["level"]) - 1] + ")"
                 except:
                     firstMsg += ""
                 sendText(number, firstMsg)
