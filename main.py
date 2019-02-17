@@ -2021,6 +2021,7 @@ def loadAllTeams():  # Requests list of all teams to be stored for string matchi
 
 def personalizedTeam(number, splitParts):
     if "mytoa" in splitParts:
+        print("User used myTOA command")
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
         userNum = number[1:]
@@ -2029,17 +2030,19 @@ def personalizedTeam(number, splitParts):
                 UID = str(phoneDB[userNum]['uid'])
                 userDB = db.reference('Users')
                 userSortDB = userDB.order_by_key().get()
-                sendText(number, "Your team is " + str(userSortDB[UID]["team"]))
+                firstName = str(userSortDB[UID]["fullName"]).split(" ")[0]
+                sendText(number, firstName + ", according to myTOA, you're on team " + str(userSortDB[UID]["team"]))
             else:
                 print("That user exists and has no user ID")
         except:
             returnErrorMsg("PTError", number)
+            return True
         try:
             eventNumDB = list(userSortDB[UID]["favTeams"].keys())
         except AttributeError:
             eventNumDB = []
         if len(eventNumDB) != 0:
-            teamStr = "Your favorite teams = "
+            teamStr = "Your favorite team(s) = "
             for i in eventNumDB:
                 teamStr += str(i) + ", "
             teamStr = teamStr[:-2]
