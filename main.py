@@ -2042,6 +2042,7 @@ def personalizedTeam(number, splitParts):
                         firstMsg += "Also, you have an account level of" + str(userSortDB[UID]["level"]) + " (" + levelDefinitions[int(userSortDB[UID]["level"])] + ")"
                 except:
                     firstMsg += ""
+                sendText(number, firstMsg)
             else:
                 print("That user exists and has no user ID")
         except:
