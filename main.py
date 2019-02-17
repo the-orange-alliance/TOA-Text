@@ -197,7 +197,7 @@ def sendText(number, msg):  # Code to send outgoing text
 command_descriptions = {
     "location": "responds with city and state a team is from",
     "name": "responds with team name and community/long name",
-    "startYear": "responds with a team's rookie year",
+    "startyear": "responds with a team's rookie year",
     "website": "responds with a team's website",
     "events": "responds with all events a team has participated in during the current season",
     "awards": "responds with all awards a team has won (current season) and where",
@@ -219,7 +219,8 @@ command_descriptions = {
     "checklives": "shows what events are currently using live scoring",
     "addlive2": "toggles whether a user is receiving live text notifications for the currently selected game, channel 2 is less in-depth",
     "avgscore": "responds with approx. average score for the alliances a team has been on",
-    "avgpoints": "responds with approx. average score for the alliances a team has been on"
+    "avgpoints": "responds with approx. average score for the alliances a team has been on",
+    "mytoa": "responds with a users team and favorite team, if they have a myTOA account"
 }
 admin_command_descriptions = {
     "freeze": "locks/disables TOAText in case of error or maintenance",
@@ -326,6 +327,7 @@ def advertsCheck(number, splitParts):
     '''if "robotlib" in splitParts:
     sendText(number, "Need a library for more effectively programming FTC robots? Go to: https://github.com/jdroids/robotlib")
     return True'''
+    return False
 
 
 def avgPoints(number, splitParts):  # Average total points
@@ -430,6 +432,8 @@ def returnErrorMsg(error, number):  # Error messages
         errorMsgText += " (EC1)"
     if error == 'falseArg':  # Uses only unreal args
         errorMsgText += " (EC2)"
+    if error == "PTError":
+        errorMsgText += " (EC4)"
     if error != "valDay":
         errorMsgText += "  [For help, text 'help' or '?']"
     sendText(number, errorMsgText)
@@ -653,7 +657,8 @@ def checkTeam(msg, number):  # Code run upon thread starting
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
             metricCount(9)
             return
-
+        if personalizedTeam(number, splitParts):
+            return
         if advertsCheck(number, splitParts) or \
                 sendHelp(number, splitParts, msg) or \
                 addLive(number, splitParts) or \
@@ -2013,6 +2018,36 @@ def loadAllTeams():  # Requests list of all teams to be stored for string matchi
                           headers=apiHeaders)
     allTeams = teamsR.json()
     print("Recieved all teams")
+
+def personalizedTeam(number, splitParts):
+    if "mytoa" in splitParts:
+        refDB = db.reference('Phones')
+        phoneDB = refDB.order_by_key().get()
+        userNum = number[1:]
+        try:
+            if phoneDB[userNum]['uid'] != "":
+                UID = str(phoneDB[userNum]['uid'])
+                print(UID)
+                userDB = db.reference('Users')
+                userSortDB = userDB.order_by_key().get()
+                sendText("Your team is " + str(userSortDB[UID]["team"]))
+            else:
+                print("That user exists and has no user ID")
+        except:
+            returnErrorMsg("PTError", number)
+        try:
+            eventNumDB = list(userSortDB[UID]["favTeams"].keys())
+        except AttributeError:
+            eventNumDB = []
+        if len(eventNumDB) != 0:
+            teamStr = "Your favorite teams = "
+            for i in eventNumDB:
+                teamStr += str(i) + ", "
+            teamStr = teamStr[:-2]
+            sendText(number, teamStr)
+        else:
+            sendText(number, "You have not set any favorite teams in your myTOA profile!")
+        return True
 
 def optOutIn(userNum, splitParts):
     refDB = db.reference('Phones')
