@@ -2045,7 +2045,10 @@ def personalizedTeam(number, splitParts):
         except AttributeError:
             eventNumDB = []
         if len(eventNumDB) != 0:
-            teamStr = "Your favorite team(s) = "
+            if len(eventNumDB) == 1:
+                teamStr = "Your favorite team is "
+            else:
+                teamStr = "Your favorite teams are "
             for i in eventNumDB:
                 teamStr += str(i) + ", "
             teamStr = teamStr[:-2]
