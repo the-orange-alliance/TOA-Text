@@ -2031,14 +2031,21 @@ def personalizedTeam(number, splitParts):
                 userDB = db.reference('Users')
                 userSortDB = userDB.order_by_key().get()
                 firstName = str(userSortDB[UID]["fullName"]).split(" ")[0]
+                firstMsg = ""
                 try:
-                    sendText(number, firstName + ", according to myTOA, you're on team " + str(userSortDB[UID]["team"]))
+                    firstMsg += firstName + ", according to myTOA, you're on team " + str(userSortDB[UID]["team"])
                 except:
-                    sendText(number, firstName + ", according to myTOA, you're not on a team")
+                    firstMsg += firstName + ", according to myTOA, you're not on a team"
+                try:
+                    levelDefinitions = ["General User", "Team/Event Admin", "Regional Admin", "FIRST", "Moderator", "Admin"]
+                    if int(userSortDB[UID]["level"]) != 1:
+                        firstMsg += "Also, you have an account level of" + str(userSortDB[UID]["level"]) + " (" + levelDefinitions[int(userSortDB[UID]["level"])] + ")"
+                except:
+                    firstMsg += ""
             else:
                 print("That user exists and has no user ID")
         except:
-            returnErrorMsg("PTError", number)
+            sendText(number, "Your phone number has not been linked to a myTOA profile (EC4)")
             return True
         try:
             eventNumDB = list(userSortDB[UID]["favTeams"].keys())
