@@ -2031,7 +2031,10 @@ def personalizedTeam(number, splitParts):
                 userDB = db.reference('Users')
                 userSortDB = userDB.order_by_key().get()
                 firstName = str(userSortDB[UID]["fullName"]).split(" ")[0]
-                sendText(number, firstName + ", according to myTOA, you're on team " + str(userSortDB[UID]["team"]))
+                try:
+                    sendText(number, firstName + ", according to myTOA, you're on team " + str(userSortDB[UID]["team"]))
+                except:
+                    sendText(number, firstName + ", according to myTOA, you're not on a team")
             else:
                 print("That user exists and has no user ID")
         except:
