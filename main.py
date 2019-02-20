@@ -683,15 +683,13 @@ def oprCheck(number, splitParts):
             eventr = requests.get(apiURL + "event/" + r.json()[r.json().index(i)]["event_key"] + "/rankings", headers=apiHeaders)
             namer = requests.get(apiURL + "event/" + r.json()[r.json().index(i)]["event_key"], headers=apiHeaders)
             for a in range(len(eventr.json())):
-                if eventr[a]["team_key"] == splitParts[splitParts.index("team") + 1]:
-                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer[i]["event_name"] + " was " + str(eventr[a]["opr"]))
+                if eventr.json()[a]["team_key"] == splitParts[splitParts.index("team") + 1]:
+                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[i]["event_name"] + " was " + str(eventr.json()[a]["opr"]))
                     msgSent = True
                     break
         if not msgSent:
             sendText(number, "This team did not have any OPRs tied to it. Check again later")
         return True
-
-
 
 def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
     r = requests.get(apiURL + "team/" + teamNum, headers=apiHeaders)
@@ -810,6 +808,8 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
                 if getTeamMatches(number, splitParts):
                     return
                 if liveStats(number, splitParts):
+                    return
+                if oprCheck(number, splitParts) is True:
                     return
                 basicInfo = checkTeamInfo(splitParts)
                 advancedInfo = checkAdvInfo(splitParts)
