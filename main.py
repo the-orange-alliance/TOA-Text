@@ -510,7 +510,7 @@ def checkName(number, splitParts, raw):
                     searchingName = str(raw.split(":", 2)[2])
                 else:
                     searchingName = str(raw.split(" ", 2)[2])
-                sendText(number, str(searchingName) + " could be team " + str(possible[:-2]))
+                sendText(number, str(searchingName) + " could be team " + str(possible))
         elif not splitParts[splitParts.index("searchtn") + 1].isdigit():
             if ":" in raw:
                 searchingName = str(raw.split(":", 1)[1]).lower().replace(" ", "")
