@@ -686,7 +686,7 @@ def oprCheck(number, splitParts):
             namer = requests.get(apiURL + "event/" + r.json()[i]["event_key"], headers=apiHeaders)
             for a in range(len(eventr.json())):
                 if eventr.json()[a]["team_key"] == splitParts[splitParts.index("team") + 1]:
-                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[0]["event_name"] + " was " + str(eventr.json()[a]["opr"]))
+                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[0]["event_name"] + " (" + namer.json()[0]["start_date"][:10]  + ") was " + str(eventr.json()[a]["opr"]))
                     msgSent = True
                     break
         if not msgSent:
