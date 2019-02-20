@@ -653,8 +653,6 @@ def checkTeam(msg, number):  # Code run upon thread starting
         return
     if playGames(number, splitParts) is True:
         return
-    if oprCheck(number, splitParts) is True:
-        return
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
             metricCount(9)
@@ -778,6 +776,8 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
             if getTeamMatches(number, splitParts):
                 return
             if liveStats(number, splitParts):
+                return
+            if oprCheck(number, splitParts) is True:
                 return
             basicInfo = checkTeamInfo(splitParts)
             advancedInfo = checkAdvInfo(splitParts)
