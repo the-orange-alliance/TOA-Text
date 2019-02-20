@@ -220,7 +220,8 @@ command_descriptions = {
     "addlive2": "toggles whether a user is receiving live text notifications for the currently selected game, channel 2 is less in-depth",
     "avgscore": "responds with approx. average score for the alliances a team has been on",
     "avgpoints": "responds with approx. average score for the alliances a team has been on",
-    "mytoa": "responds with a users team and favorite team, if they have a myTOA account"
+    "mytoa": "responds with a users team and favorite team, if they have a myTOA account",
+    "opr": "responds with the OPR for a team at every event they've been to"
 }
 admin_command_descriptions = {
     "freeze": "locks/disables TOAText in case of error or maintenance",
@@ -262,7 +263,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             sendText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             sendText(number,
-                     "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats")
+                     "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats, OPR")
             sendText(number,
                      "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
             adminHelpStr = ""
