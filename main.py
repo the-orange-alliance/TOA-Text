@@ -682,7 +682,7 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
     if "_code" not in r.json():
         refDB = db.reference('Phones')
         userNum = number[1:]
-        refDB.child(userNum).set({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
+        refDB.child(userNum).update({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
         if liveStats(number, splitParts):
             return
         if getTeamMatches(number, splitParts):
@@ -743,7 +743,7 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
         if "_code" not in r.json():
             refDB = db.reference('Phones')
             userNum = number[1:]
-            refDB.child(userNum).set({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
+            refDB.child(userNum).update({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
             if len(splitParts) == 2 and splitParts[0] == 'team':
                 splitParts.append('all')
             # print("Team Found")
