@@ -780,6 +780,13 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
             if phoneDB[str(userNum)]["lastTeam"] is not None:
                 splitParts.insert(0, "team")
                 splitParts.insert(1, str(phoneDB[str(userNum)]["lastTeam"]))
+                if 'all' in splitParts:
+                    splitParts.append('location')
+                    splitParts.append('shortname')
+                    splitParts.append('startyear')
+                    splitParts.append('website')
+                    splitParts.append('events')
+                    allFlag = 1
                 if getTeamMatches(number, splitParts):
                     return
                 if liveStats(number, splitParts):
