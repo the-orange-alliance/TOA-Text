@@ -677,6 +677,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
 
 def oprCheck(number, splitParts):
     if 'opr' in splitParts:
+        metricCount(13)
         print(str(number) + " used the OPR command")
         r = requests.get(apiURL + "team/" + splitParts[splitParts.index("team") + 1] + "/events/1819",
                          headers=apiHeaders)
@@ -2010,7 +2011,7 @@ def metricCount(action):  # Code to log metrics
     with open("metric.json", "r") as read_file:
         data = json.load(read_file)
     metricList = ["textsRec", "locGet", "nameGet", "yearGet", "webGet", "eveGet", "awardGet", "helpGet", "avgTotalGet","avgGet",
-                  "matchGet", "livesSent"]
+                  "matchGet", "livesSent", "oprGet"]
     data[str(metricList[action - 1])] += 1
     with open("metric.json", "w") as write_file:
         json.dump(data, write_file)
@@ -2038,7 +2039,8 @@ def metricTwoGet():  # Retrieves metrics
     metricStr += "TotalAvg reqs - " + str(data["avgTotalGet"]) + "; "
     metricStr += "TeamAvg reqs - " + str(data["avgGet"]) + "; "
     metricStr += "Match info reqs - " + str(data["matchGet"]) + "; "
-    metricStr += "Live Alerts sent - " + str(data["livesSent"])
+    metricStr += "Live Alerts sent - " + str(data["livesSent"]) + "; "
+    metricStr += "OPR reqs - " + str(data["oprGet"])
     return metricStr
 
 
