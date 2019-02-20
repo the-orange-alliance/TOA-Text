@@ -680,6 +680,9 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
     splitParts = ['team', 'location', 'shortname', 'startyear', 'events']
     splitParts.insert(1, teamNum)
     if "_code" not in r.json():
+        refDB = db.reference('Phones')
+        userNum = number[1:]
+        refDB.child(userNum).set({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
         if liveStats(number, splitParts):
             return
         if getTeamMatches(number, splitParts):
@@ -738,6 +741,9 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
         r = requests.get(apiURL + "team/" + splitParts[splitParts.index("team") + 1], headers=apiHeaders)
         allFlag = 0
         if "_code" not in r.json():
+            refDB = db.reference('Phones')
+            userNum = number[1:]
+            refDB.child(userNum).set({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
             if len(splitParts) == 2 and splitParts[0] == 'team':
                 splitParts.append('all')
             # print("Team Found")
@@ -763,9 +769,33 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
             sendText(number, "Invalid Team Number")
             return False
     else:
-        returnErrorMsg('invalTeam', number)
-        return False
-
+        refDB = db.reference('Phones')
+        phoneDB = refDB.order_by_key().get()
+        userNum = number[1:]
+        try:
+            splitParts.remove("team")
+        except:
+            pass
+        try:
+            if phoneDB[str(userNum)]["lastTeam"] is not None:
+                splitParts.insert(0, "team")
+                splitParts.insert(1, str(phoneDB[str(userNum)]["lastTeam"]))
+                if getTeamMatches(number, splitParts):
+                    return
+                if liveStats(number, splitParts):
+                    return
+                basicInfo = checkTeamInfo(splitParts)
+                advancedInfo = checkAdvInfo(splitParts)
+                if advancedInfo == "" and basicInfo == "":
+                    returnErrorMsg("falseArg", number)
+                else:
+                    sendText(number, formatResp(basicInfo, advancedInfo, allFlag))
+            else:
+                returnErrorMsg('invalTeam', number)
+                return False
+        except:
+            returnErrorMsg('invalTeam', number)
+            return False
 
 def checkLiveScoring():  # live scoring channel 1
     global liveMatchKey
