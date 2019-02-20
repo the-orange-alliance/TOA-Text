@@ -676,6 +676,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
 
 def oprCheck(number, splitParts):
     if 'opr' in splitParts:
+        print(str(number) + " used the OPR command")
         r = requests.get(apiURL + "team/" + splitParts[splitParts.index("team") + 1] + "/events/1819",
                          headers=apiHeaders)
         msgSent = False
@@ -684,14 +685,14 @@ def oprCheck(number, splitParts):
             namer = requests.get(apiURL + "event/" + r.json()[i]["event_key"], headers=apiHeaders)
             for a in range(len(eventr.json())):
                 if eventr.json()[a]["team_key"] == splitParts[splitParts.index("team") + 1]:
-                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[i]["event_name"] + " was " + str(eventr.json()[a]["opr"]))
+                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[0]["event_name"] + " was " + str(eventr.json()[a]["opr"]))
                     msgSent = True
                     break
         if not msgSent:
             sendText(number, "This team did not have any OPRs tied to it. Check again later")
         return True
 
-def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
+def checkOnlyTeam(teamNum, number):  # Code for if request just has team
     r = requests.get(apiURL + "team/" + teamNum, headers=apiHeaders)
     splitParts = ['team', 'location', 'shortname', 'startyear', 'events']
     splitParts.insert(1, teamNum)
