@@ -18,7 +18,7 @@ default_app = firebase_admin.initialize_app(cred, {
 })
 
 app = Flask(__name__)
-apiURL = "http://theorangealliance.org/api/"
+apiURL = "0.0.0.0:80/"
 
 apiHeaders = {'content-type': 'application/json',
               'X-TOA-KEY': '',
@@ -653,6 +653,8 @@ def checkTeam(msg, number):  # Code run upon thread starting
         return
     if playGames(number, splitParts) is True:
         return
+    if oprCheck(number, splitParts) is True:
+        return
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
             metricCount(9)
@@ -673,6 +675,24 @@ def checkTeam(msg, number):  # Code run upon thread starting
     else:
         sendText(number,
                  "TOAText is currently disabled by an admin for maintenance or other reasons! Please check back later.")
+
+def oprCheck(number, splitParts):
+    if 'opr' in splitParts:
+        r = requests.get(apiURL + "team/" + splitParts[splitParts.index("team") + 1] + "/events/1819",
+                         headers=apiHeaders)
+        msgSent = False
+        for i in r.json():
+            eventr = requests.get(apiURL + "event/" + r.json()[r.json().index(i)]["event_key"] + "/rankings", headers=apiHeaders)
+            namer = requests.get(apiURL + "event/" + r.json()[r.json().index(i)]["event_key"], headers=apiHeaders)
+            for a in range(len(eventr.json())):
+                if eventr[a]["team_key"] == splitParts[splitParts.index("team") + 1]:
+                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer[i]["event_name"] + " was " + str(eventr[a]["opr"]))
+                    msgSent = True
+                    break
+        if not msgSent:
+            sendText(number, "This team did not have any OPRs tied to it. Check again later")
+        return True
+
 
 
 def checkOnlyTeam(teamNum, number):  # Code for if request just has team #
