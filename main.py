@@ -1816,14 +1816,6 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 sendText(number, "Disable mode Disabled!")
                 print("Disable mode - off")
             return True
-        elif "metrics" in msg or "metrix" in msg:
-            print("Admin " + str(number) + " used the metrics command")
-            sendText(number, metricGet())
-            return True
-        elif "metrics2" in msg or "metrix2" in msg:
-            print("Admin " + str(number) + " used the metrics command")
-            sendText(number, metricTwoGet())
-            return True
         elif "updateadmins" in msg:
             print("Admin " + str(number) + " used the updateAdmins command")
             loadAdminList()
@@ -1900,7 +1892,15 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 teleOpSum) + " || Average score - " + str(autoSum + teleOpSum))
             return True
     if number in eventAdminList:
-        if "togglelive" in msg:
+        if "metrics" in msg or "metrix" in msg:
+            print("Admin " + str(number) + " used the metrics command")
+            sendText(number, metricGet())
+            return True
+        elif "metrics2" in msg or "metrix2" in msg:
+            print("Admin " + str(number) + " used the metrics2 command")
+            sendText(number, metricTwoGet())
+            return True
+        elif "togglelive" in msg:
             try:
                 if "1819" in msg[msg.index("togglelive") + 1]:
                     print("Admin " + str(number) + " used the toggleLive command")
