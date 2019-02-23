@@ -80,6 +80,20 @@ liveScoreListThree = []
 liveSkipThree = False
 liveQualModeThree = False
 
+#all of live channel 4 variables
+liveScoreRunningFour = False
+liveMatchKeyFour = ""
+liveScoreListFour = []
+liveSkipFour = False
+liveQualModeFour = False
+
+#all of live channel 5 variables
+liveScoreRunningFive = False
+liveMatchKeyFive = ""
+liveScoreListFive = []
+liveSkipFive = False
+liveQualModeFive = False
+
 #FTCScores live scoring
 FTCScoresRunning = False
 FTCScoresMatchKey = ""
@@ -136,6 +150,28 @@ class liveScoringThreadThree(threading.Thread):  # Thread created for live scori
         checkLiveScoringThree()
         sendText(self.startingUser, "Live scoring 3 has shut down successfully")
         print("Live scoring ended Three")
+
+class liveScoringThreadFour(threading.Thread):  # Thread created for live scoring channel 3
+    def __init__(self, name, startingUser):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.startingUser = startingUser
+    def run(self):
+        print("Starting live scoring Four")
+        checkLiveScoringFour()
+        sendText(self.startingUser, "Live scoring 4 has shut down successfully")
+        print("Live scoring ended Four")
+
+class liveScoringThreadFive(threading.Thread):  # Thread created for live scoring channel 3
+    def __init__(self, name, startingUser):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.startingUser = startingUser
+    def run(self):
+        print("Starting live scoring Five")
+        checkLiveScoringFive()
+        sendText(self.startingUser, "Live scoring 5 has shut down successfully")
+        print("Live scoring ended Five")
 
 class FTCScoresThread(threading.Thread):  # Thread created for FTCScores
     def __init__(self, name, startingUser):
@@ -318,6 +354,14 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             runningKeys += "addLive3 - none; "
         else:
             runningKeys += "addLive3 - " + str(liveMatchKeyThree) + "; "
+        if liveMatchKeyFour == "":
+            runningKeys += "addLive4 - none; "
+        else:
+            runningKeys += "addLive4 - " + str(liveMatchKeyFour) + "; "
+        if liveMatchKeyFive == "":
+            runningKeys += "addLive5 - none; "
+        else:
+            runningKeys += "addLive5 - " + str(liveMatchKeyFive) + "; "
         sendText(number, str(runningKeys))
         return True
     else:
@@ -417,6 +461,50 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
     elif "addlive3" in splitParts:
         sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
+    if "addlive4" in splitParts and liveMatchKeyFour != "":
+        print(str(number) + " Used AddLive4")
+        refDB = db.reference('liveEvents/' + str(liveMatchKeyFour).upper())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
+        if number[1:] in eventDB:
+            refDB.update({str(number[1:]): None})
+            sendText(number, "You have been removed from the live scoring alerts")
+        elif number[1:] not in eventDB:
+            try:
+                refDB.update({str(number[1:]): True})
+            except AttributeError:
+                refDB.set({str(number[1:]): True})
+            sendText(number, "You have been added to the live scoring alerts. Send addLive4 again to be removed")
+            sendText(number,
+                     "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
+        return True
+    elif "addlive4" in splitParts:
+        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        return True
+    if "addlive5" in splitParts and liveMatchKeyFive != "":
+        print(str(number) + " Used AddLive4")
+        refDB = db.reference('liveEvents/' + str(liveMatchKeyFive).upper())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
+        if number[1:] in eventDB:
+            refDB.update({str(number[1:]): None})
+            sendText(number, "You have been removed from the live scoring alerts")
+        elif number[1:] not in eventDB:
+            try:
+                refDB.update({str(number[1:]): True})
+            except AttributeError:
+                refDB.set({str(number[1:]): True})
+            sendText(number, "You have been added to the live scoring alerts. Send addLive5 again to be removed")
+            sendText(number,
+                     "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
+        return True
+    elif "addlive5" in splitParts:
+        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        return True
 
 
 def returnErrorMsg(error, number):  # Error messages
@@ -452,6 +540,8 @@ def parseRequest(number, userRequest):  # Turns user request into usable data
         ("add", "live"),
         ("add", "live2"),
         ("add", "live3"),
+        ("add", "live4"),
+        ("add", "live5"),
         ("check", "lives"),
         ("check", "status"),
         ("ping", "me"),
@@ -1398,6 +1488,382 @@ def checkLiveScoringThree():  # live scoring channel 3
     liveScoreListThree = []
     liveScoreRunningThree = False
 
+def checkLiveScoringFour():  # live scoring channel 3
+    global liveMatchKeyFour
+    global liveScoreListFour
+    global liveScoreRunningFour
+    global liveSkipFour
+    currentMatch = 1
+    loop = 0
+    r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(currentMatch) + "-1",
+                     headers=apiHeaders)
+    while liveScoreRunningFour:  # Keeps it running if no match schedule has been uploaded
+        time.sleep(5)
+        r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(currentMatch) + "-1",
+                         headers=apiHeaders)
+        print("Waiting for schedule")
+        if "_code" not in r.json():
+            break
+    while liveScoreRunningFour:
+        time.sleep(10)
+        loop += 1
+        if liveSkipFour:
+            liveSkipFour = False
+            currentMatch += 1
+        try:
+            if currentMatch < 10:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            elif currentMatch < 100:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q0" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFour) + "-Q0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
+                if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
+                    redOne = ""
+                    redTwo = ""
+                    blueOne = ""
+                    blueTwo = ""
+                    for i in range(len(personR.json())):
+                        if personR.json()[i]["station"] == 11:
+                            redOne = personR.json()[i]["team_key"]
+                        elif personR.json()[i]["station"] == 12:
+                            redTwo = personR.json()[i]["team_key"]
+                        elif personR.json()[i]["station"] == 21:
+                            blueOne = personR.json()[i]["team_key"]
+                        elif personR.json()[i]["station"] == 22:
+                            blueTwo = personR.json()[i]["team_key"]
+                    print(str(liveMatchKeyFour) + " - Qual match " + str(currentMatch) + " ended")
+                    queuingStr = ""
+                    try:
+                        if currentMatch + 1 < 10:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(
+                                currentMatch + 1) + "-1/participants", headers=apiHeaders)
+                        else:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q0" + str(
+                                currentMatch + 1) + "-1/participants", headers=apiHeaders)
+                        redOneNext = ""
+                        redTwoNext = ""
+                        blueOneNext = ""
+                        blueTwoNext = ""
+                        for a in range(len(nextPersonR.json())):
+                            if nextPersonR.json()[a]["station"] == 11:
+                                redOneNext = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 12:
+                                redTwoNext = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 21:
+                                blueOneNext = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 22:
+                                blueTwoNext = nextPersonR.json()[a]["team_key"]
+                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                            redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
+                        if currentMatch + 2 < 10:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(
+                                currentMatch + 2) + "-1/participants", headers=apiHeaders)
+                        else:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q0" + str(
+                                currentMatch + 2) + "-1/participants", headers=apiHeaders)
+                        redOneExtra = ""
+                        redTwoExtra = ""
+                        blueOneExtra = ""
+                        blueTwoExtra = ""
+                        for a in range(len(nextPersonR.json())):
+                            if nextPersonR.json()[a]["station"] == 11:
+                                redOneExtra = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 12:
+                                redTwoExtra = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 21:
+                                blueOneExtra = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 22:
+                                blueTwoExtra = nextPersonR.json()[a]["team_key"]
+                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                            redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
+                            blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
+                    except KeyError:
+                        print("KeyError")
+                        continue
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyFour).upper())
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            if loop >= 3:
+                                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            sendText(i, queuingStr)
+                    currentMatch += 1
+                    loop = 0
+        except KeyError:
+            if not liveQualModeFour:
+                break
+        except TypeError:
+            if not liveQualModeFour:
+                break
+    currentMatch = 1
+    r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-E001-1",
+                     headers=apiHeaders)
+    previousName = "NoPrev"
+    while liveScoreRunningFour and str(previousName) != "Finals 3":
+        if liveSkipFour:
+            liveSkipFour = False
+            currentMatch += 1
+        time.sleep(5)
+        try:
+            if currentMatch < 10:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-E00" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFour) + "-E00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            elif currentMatch < 100:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-E0" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFour) + "-E0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
+                if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
+                    redOne = ""
+                    redTwo = ""
+                    blueOne = ""
+                    blueTwo = ""
+                    for i in range(len(personR.json())):
+                        if personR.json()[i]["station"] < 19:
+                            if personR.json()[i]["station_status"] != -1:
+                                if redOne == "":
+                                    redOne = personR.json()[i]["team_key"]
+                                elif redTwo == "":
+                                    redTwo = personR.json()[i]["team_key"]
+                        if personR.json()[i]["station"] > 19:
+                            if personR.json()[i]["station_status"] != -1:
+                                if blueOne == "":
+                                    blueOne = personR.json()[i]["team_key"]
+                                elif blueTwo == "":
+                                    blueTwo = personR.json()[i]["team_key"]
+                    print(str(liveMatchKeyFour) + " - Elim match " + str(currentMatch) + " ended")
+                    previousName = str(r.json()[0]["match_name"])
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyFour).upper())
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            # Send score of prev match
+                        # Get next 2 match competitors
+                        # Get prev match competitors
+                    currentMatch += 1
+        except KeyError:
+            continue
+        except TypeError:
+            continue
+    liveMatchKeyFour = ""
+    liveScoreListFour = []
+    liveScoreRunningFour = False
+
+def checkLiveScoringFive():  # live scoring channel 3
+    global liveMatchKeyFive
+    global liveScoreListFive
+    global liveScoreRunningFive
+    global liveSkipFive
+    currentMatch = 1
+    loop = 0
+    r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(currentMatch) + "-1",
+                     headers=apiHeaders)
+    while liveScoreRunningFive:  # Keeps it running if no match schedule has been uploaded
+        time.sleep(5)
+        r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(currentMatch) + "-1",
+                         headers=apiHeaders)
+        print("Waiting for schedule")
+        if "_code" not in r.json():
+            break
+    while liveScoreRunningFive:
+        time.sleep(10)
+        loop += 1
+        if liveSkipFive:
+            liveSkipFive = False
+            currentMatch += 1
+        try:
+            if currentMatch < 10:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            elif currentMatch < 100:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q0" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFive) + "-Q0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
+                if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
+                    redOne = ""
+                    redTwo = ""
+                    blueOne = ""
+                    blueTwo = ""
+                    for i in range(len(personR.json())):
+                        if personR.json()[i]["station"] == 11:
+                            redOne = personR.json()[i]["team_key"]
+                        elif personR.json()[i]["station"] == 12:
+                            redTwo = personR.json()[i]["team_key"]
+                        elif personR.json()[i]["station"] == 21:
+                            blueOne = personR.json()[i]["team_key"]
+                        elif personR.json()[i]["station"] == 22:
+                            blueTwo = personR.json()[i]["team_key"]
+                    print(str(liveMatchKeyFive) + " - Qual match " + str(currentMatch) + " ended")
+                    queuingStr = ""
+                    try:
+                        if currentMatch + 1 < 10:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(
+                                currentMatch + 1) + "-1/participants", headers=apiHeaders)
+                        else:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q0" + str(
+                                currentMatch + 1) + "-1/participants", headers=apiHeaders)
+                        redOneNext = ""
+                        redTwoNext = ""
+                        blueOneNext = ""
+                        blueTwoNext = ""
+                        for a in range(len(nextPersonR.json())):
+                            if nextPersonR.json()[a]["station"] == 11:
+                                redOneNext = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 12:
+                                redTwoNext = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 21:
+                                blueOneNext = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 22:
+                                blueTwoNext = nextPersonR.json()[a]["team_key"]
+                        queuingStr += "Next (" + str(currentMatch + 1) + ") = red [#" + str(redOneNext) + ", #" + str(
+                            redTwoNext) + "], " + "blue [#" + str(blueOneNext) + ", #" + str(blueTwoNext) + "]; "
+                        if currentMatch + 2 < 10:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(
+                                currentMatch + 2) + "-1/participants", headers=apiHeaders)
+                        else:
+                            nextPersonR = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q0" + str(
+                                currentMatch + 2) + "-1/participants", headers=apiHeaders)
+                        redOneExtra = ""
+                        redTwoExtra = ""
+                        blueOneExtra = ""
+                        blueTwoExtra = ""
+                        for a in range(len(nextPersonR.json())):
+                            if nextPersonR.json()[a]["station"] == 11:
+                                redOneExtra = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 12:
+                                redTwoExtra = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 21:
+                                blueOneExtra = nextPersonR.json()[a]["team_key"]
+                            elif nextPersonR.json()[a]["station"] == 22:
+                                blueTwoExtra = nextPersonR.json()[a]["team_key"]
+                        queuingStr += "2 matches away (" + str(currentMatch + 2) + ") = red [#" + str(
+                            redOneExtra) + ", #" + str(redTwoExtra) + "], " + "blue [#" + str(
+                            blueOneExtra) + ", #" + str(blueTwoExtra) + "]"
+                    except KeyError:
+                        print("KeyError")
+                        continue
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyFive).upper())
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            if loop >= 3:
+                                sendText(i, "Qual match " + str(currentMatch) + " has just ended! " + "Final score: " + str(
+                                    r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                    r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            sendText(i, queuingStr)
+                    currentMatch += 1
+                    loop = 0
+        except KeyError:
+            if not liveQualModeFive:
+                break
+        except TypeError:
+            if not liveQualModeFive:
+                break
+    currentMatch = 1
+    r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-E001-1",
+                     headers=apiHeaders)
+    previousName = "NoPrev"
+    while liveScoreRunningFive and str(previousName) != "Finals 3":
+        if liveSkipFive:
+            liveSkipFive = False
+            currentMatch += 1
+        time.sleep(5)
+        try:
+            if currentMatch < 10:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-E00" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFive) + "-E00" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            elif currentMatch < 100:
+                r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-E0" + str(currentMatch) + "-1",
+                                 headers=apiHeaders)
+                personR = requests.get(
+                    apiURL + "match/" + str(liveMatchKeyFive) + "-E0" + str(currentMatch) + "-1/participants",
+                    headers=apiHeaders)
+            if r.json()[0]["red_score"] is not None and r.json()[0]["blue_score"] is not None:
+                if r.json()[0]["red_score"] > 0 or r.json()[0]["blue_score"] > 0:
+                    redOne = ""
+                    redTwo = ""
+                    blueOne = ""
+                    blueTwo = ""
+                    for i in range(len(personR.json())):
+                        if personR.json()[i]["station"] < 19:
+                            if personR.json()[i]["station_status"] != -1:
+                                if redOne == "":
+                                    redOne = personR.json()[i]["team_key"]
+                                elif redTwo == "":
+                                    redTwo = personR.json()[i]["team_key"]
+                        if personR.json()[i]["station"] > 19:
+                            if personR.json()[i]["station_status"] != -1:
+                                if blueOne == "":
+                                    blueOne = personR.json()[i]["team_key"]
+                                elif blueTwo == "":
+                                    blueTwo = personR.json()[i]["team_key"]
+                    print(str(liveMatchKeyFive) + " - Elim match " + str(currentMatch) + " ended")
+                    previousName = str(r.json()[0]["match_name"])
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyFive).upper())
+                    try:
+                        eventNumDB = list(refDB.order_by_key().get().keys())
+                    except AttributeError:
+                        eventNumDB = []
+                    if len(eventNumDB) != 0:
+                        for i in eventNumDB:
+                            i = "+" + i
+                            metricCount(12)
+                            sendText(i, str(r.json()[0]["match_name"]) + " has just ended! " + "Final score: " + str(
+                                r.json()[0]["red_score"]) + " red [#" + str(redOne) + ", #" + str(redTwo) + "], " + str(
+                                r.json()[0]["blue_score"]) + " blue [#" + str(blueOne) + ", #" + str(blueTwo) + "]")
+                            # Send score of prev match
+                        # Get next 2 match competitors
+                        # Get prev match competitors
+                    currentMatch += 1
+        except KeyError:
+            continue
+        except TypeError:
+            continue
+    liveMatchKeyFive = ""
+    liveScoreListFive = []
+    liveScoreRunningFive = False
+
 def checkLiveScoringFTCScores():  # live scoring channel 3
     global FTCScoresRunning
     global FTCScoresMatchKey
@@ -1458,7 +1924,6 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
         if len(redStr) >= 160:
             redStr = redStr[:155] + "..."
         return redStr
-
     def bluecompileinfo(jsonInfo):
         blueStr = "Auto - " + str(jsonInfo[0]["blue_auto_score"]) + "; "
         blueStr += "TeleOP - " + str(jsonInfo[0]["blue_tele_score"]) + "; "
@@ -1800,6 +2265,14 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     global liveScoreListThree
     global liveScoreRunningThree
     global liveSkipThree
+    global liveMatchKeyFour
+    global liveScoreListFour
+    global liveScoreRunningFour
+    global liveSkipFour
+    global liveMatchKeyFive
+    global liveScoreListFive
+    global liveScoreRunningFive
+    global liveSkipFive
     global FTCScoresList
     global FTCScoresMatchKey
     global FTCScoresRunning
@@ -1960,6 +2433,46 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                     print("Phone number added to DB")
                     liveThreadThree = liveScoringThreadThree("LiveThread3", str(number))
                     liveThreadThree.start()
+                return True
+            else:
+                sendText(number, "ToggleLive missing match key [toggleLive:(matchKey)]")
+                return True
+        elif "togglelive4" in msg:
+            if "1819" in msg[msg.index("togglelive4") + 1]:
+                print("Admin " + str(number) + " used the toggleLive4 command")
+                if liveScoreRunningFour:
+                    sendText(number, "You have manually ended live scoring alert thread 4")
+                    liveMatchKeyFour = ""
+                    liveScoreRunningFour = False
+                elif not liveScoreRunningFour:
+                    liveScoreRunningFour = True
+                    sendText(number, "You have started a live scoring alert thread")
+                    liveMatchKeyFour = str(msg[msg.index("togglelive4") + 1]).upper()
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyFour).upper())
+                    refDB.update({str(number[1:]): True})
+                    print("Phone number added to DB")
+                    liveThreadFour = liveScoringThreadFour("LiveThread4", str(number))
+                    liveThreadFour.start()
+                return True
+            else:
+                sendText(number, "ToggleLive missing match key [toggleLive:(matchKey)]")
+                return True
+        elif "togglelive5" in msg:
+            if "1819" in msg[msg.index("togglelive5") + 1]:
+                print("Admin " + str(number) + " used the toggleLive5 command")
+                if liveScoreRunningFive:
+                    sendText(number, "You have manually ended live scoring alert thread 5")
+                    liveMatchKeyFive = ""
+                    liveScoreRunningFive = False
+                elif not liveScoreRunningFive:
+                    liveScoreRunningFive = True
+                    sendText(number, "You have started a live scoring alert thread")
+                    liveMatchKeyFive = str(msg[msg.index("togglelive5") + 1]).upper()
+                    refDB = db.reference('liveEvents/' + str(liveMatchKeyFive).upper())
+                    refDB.update({str(number[1:]): True})
+                    print("Phone number added to DB")
+                    liveThreadFive = liveScoringThreadFive("LiveThread5", str(number))
+                    liveThreadFive.start()
                 return True
             else:
                 sendText(number, "ToggleLive missing match key [toggleLive:(matchKey)]")
