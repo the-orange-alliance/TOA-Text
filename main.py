@@ -926,7 +926,7 @@ def checkLiveScoring():  # live scoring channel 1
     global liveSkip
     liveSkip = False
     currentMatch = 1
-    loop = 0
+    loop = 5
     r = requests.get(apiURL + "match/" + str(liveMatchKey) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunning:  # Keeps it running if no match schedule has been uploaded
@@ -1117,7 +1117,7 @@ def checkLiveScoringTwo():  # live scoring channel 2
     global liveScoreRunningTwo
     global liveSkipTwo
     currentMatch = 1
-    loop = 0
+    loop = 5
     r = requests.get(apiURL + "match/" + str(liveMatchKeyTwo) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunningTwo:  # Keeps it running if no match schedule has been uploaded
@@ -1306,7 +1306,7 @@ def checkLiveScoringThree():  # live scoring channel 3
     global liveScoreRunningThree
     global liveSkipThree
     currentMatch = 1
-    loop = 0
+    loop = 5
     r = requests.get(apiURL + "match/" + str(liveMatchKeyThree) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunningThree:  # Keeps it running if no match schedule has been uploaded
@@ -1494,7 +1494,7 @@ def checkLiveScoringFour():  # live scoring channel 3
     global liveScoreRunningFour
     global liveSkipFour
     currentMatch = 1
-    loop = 0
+    loop = 5
     r = requests.get(apiURL + "match/" + str(liveMatchKeyFour) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunningFour:  # Keeps it running if no match schedule has been uploaded
@@ -1682,7 +1682,7 @@ def checkLiveScoringFive():  # live scoring channel 3
     global liveScoreRunningFive
     global liveSkipFive
     currentMatch = 1
-    loop = 0
+    loop = 5
     r = requests.get(apiURL + "match/" + str(liveMatchKeyFive) + "-Q00" + str(currentMatch) + "-1",
                      headers=apiHeaders)
     while liveScoreRunningFive:  # Keeps it running if no match schedule has been uploaded
