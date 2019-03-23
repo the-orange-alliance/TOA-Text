@@ -207,7 +207,7 @@ def receiveText():  # Code executed upon receiving text
 
 @app.route("/match", methods=['POST'])
 def newLiveAlerts(): #
-    matchInfo = request.json()
+    matchInfo = request.get_json(force=True)
     str(matchInfo)
     sendText(adminList[2], str(matchInfo))
     if adminList[0] in pingList:
@@ -216,7 +216,7 @@ def newLiveAlerts(): #
 
 @app.route("/match_details", methods=['POST'])
 def newLiveAlertsDetails(): #
-    matchInfo = request.json()
+    matchInfo = request.get_json(force=True)
     print(str(matchInfo))
     sendText(adminList[2], str(matchInfo))
     if adminList[0] in pingList:
