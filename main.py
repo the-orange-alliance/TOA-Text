@@ -6,7 +6,7 @@ import random as rand
 import threading
 import json
 import time
-from flask import Flask, request
+from flask import Flask, request, make_response
 from fuzzywuzzy import fuzz
 import firebase_admin
 from firebase_admin import credentials
@@ -52,6 +52,7 @@ optOutNums = []
 
 twilioAccountID = ""
 twilioAuth = ""
+webhookKey = ""
 
 # global val for average comp last weekend
 autoSum = 0
@@ -208,14 +209,15 @@ def receiveText():  # Code executed upon receiving text
 @app.route("/match", methods=['POST'])
 def newLiveAlerts(): #
     matchInfo = request.get_json(force=True)
-    str(matchInfo)
-    return(str(matchInfo))
+    if webhookKey == request.headers.get('webhookKey'):
+        str(matchInfo)
+        res = make_response('{"_code":200,"_message":"Request successful"}')
+        res.headers['Content-Type'] = 'application/json'
+    else:
+        res = make_response('{"_code":401,"_message":"Missing or invalid key"}')
+        res.headers['Content-Type'] = 'application/json'
+    return res
 
-@app.route("/match_details", methods=['POST'])
-def newLiveAlertsDetails(): #
-    matchInfo = request.get_json(force=True)
-    print(str(matchInfo))
-    return(str(matchInfo))
 
 def sendText(number, msg):  # Code to send outgoing text
     global numTwoList
@@ -2598,11 +2600,12 @@ def loadAdminList():  # Loads admin numbers off admin.json
     print(str(adminList))
 
 
-def loadTwilio():  # Loads Twilio account info off twilio.json
+def loadAPIKeys():  # Loads Twilio account info off twilio.json
     global twilioAuth
     global twilioAccountID
     global apiHeaders
     global functionsHeaders
+    global webhookKey
     with open("twilio.json", "r") as read_file:
         data = json.load(read_file)
     twilioAuth = str(data["twilioAuth"])
@@ -2611,6 +2614,7 @@ def loadTwilio():  # Loads Twilio account info off twilio.json
                   'X-TOA-KEY': str(data["toaKey"]),
                   'X-Application-Origin': 'TOAText'}
     functionsHeaders = {'Authorization': str(data["functionKey"])}
+    webhookKey = str(data["webhookKey"])
 
 
 def loadAllTeams():  # Requests list of all teams to be stored for string matching
@@ -2695,7 +2699,7 @@ def optOutIn(userNum, splitParts):
 if __name__ == "__main__":  # starts the whole program
     print("started")
     loadAdminList()
-    loadTwilio()
+    loadAPIKeys()
     loadAllTeams()
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
     sendText(str(adminList[0]), "TOAText finished bootup sequence")
