@@ -209,6 +209,10 @@ def receiveText():  # Code executed upon receiving text
 @app.route("/match", methods=['POST'])
 def newLiveAlerts(): #
     matchInfo = request.get_json(force=True)
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        print(request.environ['REMOTE_ADDR'])
+    else:
+        print(request.environ['HTTP_X_FORWARDED_FOR'])
     if webhookKey == request.headers.get('webhookKey'):
         str(matchInfo)
         res = make_response('{"_code":200,"_message":"Request successful"}')
@@ -2372,7 +2376,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             teleOpSum = 0
             filledEvents = 0
             for i in range(len(eventsList)):
-                if "2019-02-09" in eventsList[i]["start_date"]:
+                if "2019-03-09" in eventsList[i]["start_date"]:
                     print(eventsList[i]["event_name"])
                     matchr = requests.get(apiURL + "event/" + eventsList[i]["event_key"] + "/matches",
                                           headers=apiHeaders)
