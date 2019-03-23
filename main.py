@@ -205,6 +205,23 @@ def receiveText():  # Code executed upon receiving text
     t.start()
     return (str(resp))
 
+@app.route("/match", methods=['POST'])
+def newLiveAlerts(): #
+    matchInfo = request.json()
+    str(matchInfo)
+    sendText(adminList[2], str(matchInfo))
+    if adminList[0] in pingList:
+        sendText(adminList[0], str(matchInfo))
+    return(str(matchInfo))
+
+@app.route("/match_details", methods=['POST'])
+def newLiveAlertsDetails(): #
+    matchInfo = request.json()
+    print(str(matchInfo))
+    sendText(adminList[2], str(matchInfo))
+    if adminList[0] in pingList:
+        sendText(adminList[0], str(matchInfo))
+    return(str(matchInfo))
 
 def sendText(number, msg):  # Code to send outgoing text
     global numTwoList
@@ -308,7 +325,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
             adminHelpStr = ""
             if number in adminList:
-                adminHelpStr += "Admin requests: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, updateAdmins; "
+                adminHelpStr += "Admin requests: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, updateAdmins, serverstatus; "
             if number in eventAdminList:
                 adminHelpStr += "Event requests: toggleLive, liveskip, livequalmode"
                 sendText(number, adminHelpStr)
@@ -321,7 +338,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         sendText(number,
                  "TOAText is a portable, on-the-go version of The Orange Alliance. It can provide information about teams, along with statistics")
         sendText(number, "Created by Team 15692 in collaboration with The Orange Alliance. Special thanks to Dominic Hupp for maintaining this project")
-        sendText(number, "To know more about any commands, use ?:[command] or helpme:[command]")
+        sendText(number, "To know more about any commands, use ?:[command] or help:[command]")
         return True
     elif "newcmds" in splitParts:
         sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN")
