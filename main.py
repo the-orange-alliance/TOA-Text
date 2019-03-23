@@ -209,18 +209,12 @@ def receiveText():  # Code executed upon receiving text
 def newLiveAlerts(): #
     matchInfo = request.get_json(force=True)
     str(matchInfo)
-    sendText(adminList[2], str(matchInfo))
-    if adminList[0] in pingList:
-        sendText(adminList[0], str(matchInfo))
     return(str(matchInfo))
 
 @app.route("/match_details", methods=['POST'])
 def newLiveAlertsDetails(): #
     matchInfo = request.get_json(force=True)
     print(str(matchInfo))
-    sendText(adminList[2], str(matchInfo))
-    if adminList[0] in pingList:
-        sendText(adminList[0], str(matchInfo))
     return(str(matchInfo))
 
 def sendText(number, msg):  # Code to send outgoing text
