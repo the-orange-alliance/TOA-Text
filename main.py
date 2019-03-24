@@ -214,6 +214,10 @@ def newLiveAlerts(): #
         str(matchInfo)
         res = make_response('{"_code":200,"_message":"Request successful"}')
         res.headers['Content-Type'] = 'application/json'
+        if webhookKey == request.headers.get('webhookKey'):
+            res.headers['AcceptanceType'] = 'Key'
+        elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
+            res.headers['AcceptanceType'] = 'Localhost'
     else:
         res = make_response('{"_code":401,"_message":"Missing or invalid key"}')
         res.headers['Content-Type'] = 'application/json'
