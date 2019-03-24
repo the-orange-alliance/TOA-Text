@@ -208,8 +208,9 @@ def receiveText():  # Code executed upon receiving text
 
 @app.route("/match", methods=['POST'])
 def newLiveAlerts(): #Captures generic match info
-    matchInfo = request.get_json(force=True)
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
+        matchInfo = request.get_json(force=True)
+        print(str(matchInfo))
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
@@ -223,8 +224,9 @@ def newLiveAlerts(): #Captures generic match info
 
 @app.route("/match_details", methods=['POST'])
 def newLiveAlertDetails(): #Captures specific details about a match
-    matchInfo = request.get_json(force=True)
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
+        matchInfo = request.get_json(force=True)
+        print(str(matchInfo))
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
