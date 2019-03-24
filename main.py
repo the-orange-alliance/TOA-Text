@@ -207,19 +207,33 @@ def receiveText():  # Code executed upon receiving text
     return (str(resp))
 
 @app.route("/match", methods=['POST'])
-def newLiveAlerts(): #
+def newLiveAlerts(): #Captures generic match info
     matchInfo = request.get_json(force=True)
-    print(str(request.environ['REMOTE_ADDR']))
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
-        str(matchInfo)
         if webhookKey == request.headers.get('webhookKey'):
-            res = make_response('{"_code":200,"_message":"Key request successful"}')
+            resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
-            res = make_response('{"_code":200,"_message":"Localhost request successful"}')
-        res.headers['Content-Type'] = 'application/json'
+            resBody = '{"_code":200,"_message":"Localhost request successful"}'
     else:
-        res = make_response('{"_code":401,"_message":"Missing or invalid key"}')
-        res.headers['Content-Type'] = 'application/json'
+        resBody = '{"_code":401,"_message":"Missing or invalid key"}'
+    res = make_response(str(resBody))
+    res.headers['Content-Type'] = 'application/json'
+    print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
+    return res
+
+@app.route("/match_details", methods=['POST'])
+def newLiveAlertDetails(): #Captures specific details about a match
+    matchInfo = request.get_json(force=True)
+    if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
+        if webhookKey == request.headers.get('webhookKey'):
+            resBody = '{"_code":200,"_message":"Key request successful"}'
+        elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
+            resBody = '{"_code":200,"_message":"Localhost request successful"}'
+    else:
+        resBody = '{"_code":401,"_message":"Missing or invalid key"}'
+    res = make_response(str(resBody))
+    res.headers['Content-Type'] = 'application/json'
+    print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
     return res
 
 
@@ -2707,5 +2721,4 @@ if __name__ == "__main__":  # starts the whole program
     loadAllTeams()
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
     sendText(str(adminList[0]), "TOAText finished bootup sequence")
-    pingList.append(str(adminList[0]))
     app.run(host='0.0.0.0', port=5001)
