@@ -209,11 +209,8 @@ def receiveText():  # Code executed upon receiving text
 @app.route("/match", methods=['POST'])
 def newLiveAlerts(): #
     matchInfo = request.get_json(force=True)
-    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-        print(request.environ['REMOTE_ADDR'])
-    else:
-        print(request.environ['HTTP_X_FORWARDED_FOR'])
-    if webhookKey == request.headers.get('webhookKey'):
+    print(str(request.environ['REMOTE_ADDR']))
+    if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         str(matchInfo)
         res = make_response('{"_code":200,"_message":"Request successful"}')
         res.headers['Content-Type'] = 'application/json'
