@@ -238,7 +238,7 @@ def newLiveAlertDetails(): #Captures specific details about a match
     print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
     return res
 
-def sendText(number, msg):  # Code to send outgoing text
+def sendText(number, msg, override = False):  # Code to send outgoing text
     global numTwoList
     account_sid = twilioAccountID
     auth_token = twilioAuth
@@ -246,7 +246,7 @@ def sendText(number, msg):  # Code to send outgoing text
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
     userNum = number[1:]
-    if not phoneDB[userNum]['opted']:
+    if not phoneDB[userNum]['opted'] and not override:
         return
     if "+1" in number and number in numTwoList:
         message = client.messages \
@@ -2719,7 +2719,7 @@ def optOutIn(userNum, splitParts):
         phoneDB = refDB.order_by_key().get()
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
-        sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin")
+        sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin", True)
         print(str(userNum) + " has opted out")
         return True
     elif "start" in splitParts:
