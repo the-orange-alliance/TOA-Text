@@ -594,7 +594,7 @@ def parseRequest(number, userRequest):  # Turns user request into usable data
         ("top", "three"),
         ("short", "name"),
         ("get", "score"),
-
+        ("mass", "msg")
     ]
     if ":" in userRequest:
         splitParts = userRequest.lower().replace(" ", "").split(":")
@@ -2607,18 +2607,20 @@ def metricTwoGet():  # Retrieves metrics
 
 def loadAdminList():  # Loads admin numbers off admin.json
     global adminList
-    global eventAdminList
     adminList = []
-    eventAdminList = []
-    with open("admin.json", "r") as read_file:
-        data = json.load(read_file)
-    for i in range(len(data["fileAdminList"])):
-        adminList.append(str(data["fileAdminList"][i]["admin_num"]))
-        eventAdminList.append(str(data["fileAdminList"][i]["admin_num"]))
-    for i in range(len(data["fileEventAdminList"])):
-        eventAdminList.append(str(data["fileEventAdminList"][i]["admin_num"]))
-    print(str(adminList))
-
+    refDB = db.reference('Phones')
+    phoneDB = refDB.order_by_key().get()
+    userDB = db.reference('Users')
+    levelDB = userDB.order_by_key().get()
+    for number in phoneDB:
+        try:
+            if phoneDB[number]['uid']:
+                if levelDB[phoneDB[number]['uid']]['level'] == 6:
+                    adminList.append("+"+number)
+            else:
+                continue
+        except:
+            continue
 
 def loadAPIKeys():  # Loads Twilio account info off twilio.json
     global twilioAuth
@@ -2691,13 +2693,13 @@ def personalizedTeam(number, splitParts):
             sendText(number, "You have not set any favorite teams in your myTOA profile!")
         return True
 
-def sendMass(splitParts, rawMsg):
-    if "massmessage" in splitParts:
+def sendMass(splitParts, rawMsg, number):
+    if "massmsg" in splitParts and number in adminList:
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
         for number in phoneDB:
             print(number)
-        sendText(str(adminList[0]), rawMsg.replace("massmessage ", ""))
+        sendText(str(adminList[0]), rawMsg.replace("massmsg ", ""))
         return True
 
 def optOutIn(userNum, splitParts):
@@ -2731,5 +2733,7 @@ if __name__ == "__main__":  # starts the whole program
     loadAPIKeys()
     loadAllTeams()
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
-    sendText(str(adminList[0]), "TOAText finished bootup sequence")
+    for num in adminList:
+        if "740" in num:
+            sendText(str(num), str(adminList))
     app.run(host='0.0.0.0', port=5001)
