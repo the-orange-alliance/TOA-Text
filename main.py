@@ -2606,6 +2606,7 @@ def loadAdminList():  # Loads admin numbers off admin.json
                 continue
         except:
             continue
+    print(adminList)
 
 def loadAPIKeys():  # Loads Twilio account info off twilio.json
     global twilioAuth
