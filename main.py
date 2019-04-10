@@ -2685,12 +2685,15 @@ def sendMass(splitParts, rawMsg, requester):
             sendText(number, rawMsg.replace("massmsg ", ""), False)
         return True
     elif "eventmsg" in splitParts and requester in adminList:
-        refDB = db.reference('liveEvents')
-        eventsDB = refDB.order_by_key().get()
-        for number in eventsDB[str(splitParts[splitParts.index("eventmsg")+1]).upper()].keys():
-            print(number)
-            sendText("+"+number, rawMsg.replace("eventmsg " + splitParts[splitParts.index("eventmsg")+1] + " ", ""), False)
-        return True
+        try:
+            refDB = db.reference('liveEvents')
+            eventsDB = refDB.order_by_key().get()
+            for number in eventsDB[str(splitParts[splitParts.index("eventmsg")+1]).upper()].keys():
+                sendText("+"+number, rawMsg.replace("eventmsg " + str(splitParts[splitParts.index("eventmsg")+1]) + " ", ""), False)
+            return True
+        except:
+            sendText(requester, "This eventmsg was not sent!")
+            return True
 
 def optOutIn(userNum, splitParts):
     refDB = db.reference('Phones')
