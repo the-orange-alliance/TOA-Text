@@ -324,7 +324,6 @@ def respond_by_command(descriptions, splitParts, number):
             return True
     return False
 
-
 def checkHelp(splitParts, number):  # Code to check if help was requested
     defaultSend = 0
     sent = False
@@ -408,13 +407,11 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
     else:
         return False
 
-
 def advertsCheck(number, splitParts):
     '''if "robotlib" in splitParts:
     sendText(number, "Need a library for more effectively programming FTC robots? Go to: https://github.com/jdroids/robotlib")
     return True'''
     return False
-
 
 def avgPoints(number, splitParts):  # Average total points
     if "avgtotalscore" in splitParts or "avgtotalpoints" in splitParts:
@@ -422,7 +419,6 @@ def avgPoints(number, splitParts):  # Average total points
         sendText(number, "Average auto score - " + str(round(autoSum, 2)) + " || Average TeleOp score - " + str(
             round(teleOpSum, 2)) + " || Average score - " + str(round(float(autoSum + teleOpSum), 2)))
         return True
-
 
 def addLive(number, splitParts):  # Adds users to live alert threads One, Two, or Three
     if "addlive" in splitParts and liveMatchKey != "":
@@ -547,7 +543,6 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
         sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
 
-
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
     errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
@@ -567,7 +562,6 @@ def returnErrorMsg(error, number):  # Error messages
     if error != "valDay":
         errorMsgText += "  [For help, text 'help' or '?']"
     sendText(number, errorMsgText)
-
 
 def parseRequest(number, userRequest):  # Turns user request into usable data
     # requestParts = userRequest.split(',')
@@ -615,7 +609,6 @@ def parseRequest(number, userRequest):  # Turns user request into usable data
                     break
     # print(splitParts)
     return splitParts
-
 
 def checkName(number, splitParts, raw):
     if "searchtn" in splitParts:
@@ -674,7 +667,6 @@ def checkName(number, splitParts, raw):
             sendText(number, "That is not a valid team name")
         return True
 
-
 def formatResp(strOne, strTwo, allFlag):  # Formats end response to send to user [Truncates and removes end characters]
     # str(basicInfo + advancedInfo).replace(",;",";")[:-2]
     totalStr = strOne + strTwo
@@ -687,7 +679,6 @@ def formatResp(strOne, strTwo, allFlag):  # Formats end response to send to user
     if len(totalStr) > 1000:
         totalStr = totalStr[:950] + "... [Information truncated due to being over 1000 characters]"
     return totalStr
-
 
 def sendHelp(number, splitParts, rawRequest):  # Sends message to any admin in help list
     if "sendhelp" in splitParts:
@@ -785,7 +776,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
         return
     if playGames(number, splitParts) is True:
         return
-    if sendMass(splitParts, msg):
+    if sendMass(splitParts, msg, number):
         return
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
@@ -849,7 +840,6 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team
         sendText(number, "Invalid Team Number")
         return False
 
-
 def playGames(number, splitParts):  # plays flip a coin or RPS
     if "flip" in splitParts:
         print(str(number) + " Used Flip")
@@ -882,7 +872,6 @@ def playGames(number, splitParts):  # plays flip a coin or RPS
 
         sendText(number, response + result)
         return True
-
 
 def checkTeamFlags(splitParts, number):  # Code for if request has flags
     allFlag = 0
@@ -1153,7 +1142,6 @@ def checkLiveScoring():  # live scoring channel 1
     liveScoreScores = []
     liveScoreRunning = False
 
-
 def checkLiveScoringTwo():  # live scoring channel 2
     global liveMatchKeyTwo
     global liveScoreListTwo
@@ -1341,7 +1329,6 @@ def checkLiveScoringTwo():  # live scoring channel 2
     liveMatchKeyTwo = ""
     liveScoreListTwo = []
     liveScoreRunningTwo = False
-
 
 def checkLiveScoringThree():  # live scoring channel 3
     global liveMatchKeyThree
@@ -1954,7 +1941,6 @@ def checkLiveScoringFTCScores():  # live scoring channel 3
     FTCScoresList = []
     FTCScoresRunning = False
 
-
 def getTeamMatches(number, splitParts):  # Code to view a teams matches
     def redcompileinfo(jsonInfo):
         redStr = "Auto - " + str(jsonInfo[0]["red_auto_score"]) + "; "
@@ -2151,7 +2137,6 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                      "Incorrect format. Use ?:matchinfo or helpme:matchinfo for information on how to use this command")
         return True
 
-
 def checkTeamInfo(splitParts):  # Code to request basic team info
     print(splitParts)
     r = requests.get(apiURL + "team/" + splitParts[splitParts.index("team") + 1], headers=apiHeaders)
@@ -2210,7 +2195,6 @@ def checkTeamInfo(splitParts):  # Code to request basic team info
             basicInfoString += "No Website; "
     # print(basicInfoString)
     return basicInfoString
-
 
 def checkAdvInfo(splitParts):  # Code to request advanced team info
     advInfoString = ""
@@ -2286,7 +2270,6 @@ def checkAdvInfo(splitParts):  # Code to request advanced team info
         advInfoString += "Avg total - " + str(
             round(autoTeamSum / filledEvents + teleOpTeamSum / filledEvents, 2)) + "; "
     return advInfoString
-
 
 def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     global disableMode
@@ -2573,7 +2556,6 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     else:
         return False
 
-
 def metricCount(action):  # Code to log metrics
     with open("metric.json", "r") as read_file:
         data = json.load(read_file)
@@ -2582,7 +2564,6 @@ def metricCount(action):  # Code to log metrics
     data[str(metricList[action - 1])] += 1
     with open("metric.json", "w") as write_file:
         json.dump(data, write_file)
-
 
 def metricGet():  # Retrieves metrics
     with open("metric.json", "r") as read_file:
@@ -2596,7 +2577,6 @@ def metricGet():  # Retrieves metrics
     metricStr += "Event reqs - " + str(data["eveGet"]) + "; "
     metricStr += "Award reqs - " + str(data["awardGet"])
     return metricStr
-
 
 def metricTwoGet():  # Retrieves metrics
     with open("metric.json", "r") as read_file:
@@ -2642,7 +2622,6 @@ def loadAPIKeys():  # Loads Twilio account info off twilio.json
                   'X-Application-Origin': 'TOAText'}
     functionsHeaders = {'Authorization': str(data["functionKey"])}
     webhookKey = str(data["webhookKey"])
-
 
 def loadAllTeams():  # Requests list of all teams to be stored for string matching
     global allTeams
@@ -2698,13 +2677,18 @@ def personalizedTeam(number, splitParts):
             sendText(number, "You have not set any favorite teams in your myTOA profile!")
         return True
 
-def sendMass(splitParts, rawMsg, number):
-    if "massmsg" in splitParts and number in adminList:
+def sendMass(splitParts, rawMsg, requester):
+    if "massmsg" in splitParts and requester in adminList:
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
         for number in phoneDB:
-            print(number)
-        sendText(str(adminList[0]), rawMsg.replace("massmsg ", ""))
+            sendText(number, rawMsg.replace("massmsg ", ""), False)
+        return True
+    elif "eventmsg" in splitParts and requester in adminList:
+        refDB = db.reference('liveEvents')
+        eventsDB = refDB.order_by_key().get().keys()
+        for number in eventsDB[str(splitParts.index("eventmsg")+1).upper()]:
+            sendText(number, rawMsg.replace("eventmsg " + splitParts[splitParts.index("eventmsg")+1] + " ", ""), False)
         return True
 
 def optOutIn(userNum, splitParts):
@@ -2740,5 +2724,5 @@ if __name__ == "__main__":  # starts the whole program
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
     for num in adminList:
         if "740" in num:
-            sendText(str(num), str(adminList))
+            sendText(str(num), str(adminList), True)
     app.run(host='0.0.0.0', port=5001)
