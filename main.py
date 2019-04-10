@@ -238,7 +238,6 @@ def newLiveAlertDetails(): #Captures specific details about a match
     print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
     return res
 
-
 def sendText(number, msg):  # Code to send outgoing text
     global numTwoList
     account_sid = twilioAccountID
@@ -780,6 +779,8 @@ def checkTeam(msg, number):  # Code run upon thread starting
     if checkAdminMsg(number, splitParts, msg) is True:  # Check if admin request was made
         return
     if playGames(number, splitParts) is True:
+        return
+    if sendMass(splitParts, msg):
         return
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
@@ -2604,7 +2605,6 @@ def metricTwoGet():  # Retrieves metrics
     metricStr += "OPR reqs - " + str(data["oprGet"])
     return metricStr
 
-
 def loadAdminList():  # Loads admin numbers off admin.json
     global adminList
     global eventAdminList
@@ -2689,6 +2689,15 @@ def personalizedTeam(number, splitParts):
             sendText(number, teamStr)
         else:
             sendText(number, "You have not set any favorite teams in your myTOA profile!")
+        return True
+
+def sendMass(splitParts, rawMsg):
+    if "massmessage" in splitParts:
+        refDB = db.reference('Phones')
+        phoneDB = refDB.order_by_key().get()
+        for number in phoneDB:
+            print(number)
+        sendText(str(adminList[0]), rawMsg.replace("massmessage ", ""))
         return True
 
 def optOutIn(userNum, splitParts):
