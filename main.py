@@ -2686,8 +2686,9 @@ def sendMass(splitParts, rawMsg, requester):
         return True
     elif "eventmsg" in splitParts and requester in adminList:
         refDB = db.reference('liveEvents')
-        eventsDB = refDB.order_by_key().get().keys()
-        for number in eventsDB[str(splitParts.index("eventmsg")+1).upper()]:
+        eventsDB = refDB.order_by_key().get()
+        for number in eventsDB[str(splitParts.index("eventmsg")+1).upper()].keys():
+            print(number)
             sendText(number, rawMsg.replace("eventmsg " + splitParts[splitParts.index("eventmsg")+1] + " ", ""), False)
         return True
 
