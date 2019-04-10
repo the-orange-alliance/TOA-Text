@@ -243,6 +243,11 @@ def sendText(number, msg):  # Code to send outgoing text
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
+    refDB = db.reference('Phones')
+    phoneDB = refDB.order_by_key().get()
+    userNum = number[1:]
+    if not phoneDB[userNum]['opted']:
+        return
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
