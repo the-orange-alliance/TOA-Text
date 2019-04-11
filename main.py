@@ -338,19 +338,18 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             sendText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             sendText(number,
+                     "Houston Worlds Special Commands - addJemison, addFranklin (to join live alerts!)")
+            sendText(number,
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats, OPR")
             sendText(number,
-                     "Available non-team requests are: avgTotalScore, about, sendhelp, newCMDs, addLive, flip, checklives, searchTN")
+                     "Available non-team requests are: avgTotalScore, about, flip, searchTN. Example - 15692:location:name:events or 15692 shortname awards")
             adminHelpStr = ""
             if number in adminList:
-                adminHelpStr += "Admin requests: checkStatus, freeze, metrics, metrics2, pingme, updateavg, joinhelp, sendhelp, updateAdmins, serverstatus; "
+                adminHelpStr += "Admin requests: checkStatus, freeze, metrics, metrics2, pingme, updateavg, updateAdmins, serverstatus"
             if number in eventAdminList:
-                adminHelpStr += "Event requests: toggleLive, liveskip, livequalmode"
                 sendText(number, adminHelpStr)
             sendText(number,
-                     "Example - 15692:location:name:events or 15692 shortname awards. If you're still confused, use ?:[command] to know more")
-            sendText(number,
-                     "Text STOP to opt-out of using TOAText. Use START to opt back into TOAText.")
+                     "Use ?:[command] to know more! Text STOP to opt-out of using TOAText. Use START to opt back into TOAText.")
         return True
     elif "about" in splitParts:
         sendText(number,
