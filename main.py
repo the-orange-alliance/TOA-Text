@@ -2726,7 +2726,7 @@ def sendMass(splitParts, rawMsg, requester):
             refDB = db.reference('liveEvents')
             eventsDB = refDB.order_by_key().get()
             userMsg = rawMsg.replace("eventmsg", "")
-            userMsg = userMsg.split(" ", 1)[1]
+            userMsg = userMsg.split(" ", 2)[2]
             while userMsg[0] == " ":
                 userMsg = userMsg[1:]
             for attendeeNum in eventsDB[str(splitParts[splitParts.index("eventmsg") + 1]).upper()].keys():
