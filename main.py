@@ -325,7 +325,6 @@ def respond_by_command(descriptions, splitParts, number):
     return False
 
 def checkHelp(splitParts, number):  # Code to check if help was requested
-    defaultSend = 0
     sent = False
     if "?" in splitParts or "helpme" in splitParts or "help" in splitParts:
         print("Help requested by " + str(number))
@@ -2628,6 +2627,7 @@ def metricTwoGet():  # Retrieves metrics
 
 def loadAdminList():  # Loads admin numbers off admin.json
     global adminList
+    global eventAdminList
     adminList = []
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
@@ -2643,6 +2643,7 @@ def loadAdminList():  # Loads admin numbers off admin.json
         except:
             continue
     print(adminList)
+    eventAdminList = adminList
 
 def loadAPIKeys():  # Loads Twilio account info off twilio.json
     global twilioAuth
