@@ -558,7 +558,25 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             except AttributeError:
                 refDB.set({str(number[1:]): True})
             sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
-            sendText(number, "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible, and best of luck today!")
+            sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
+        return True
+    if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
+        franklinKey = "1819-CMP-HOU2"
+        refDB = db.reference('liveEvents/' + str(franklinKey).upper())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
+        if number[1:] in eventDB:
+            refDB.update({str(number[1:]): None})
+            sendText(number, "You have been removed from the live scoring alerts")
+        elif number[1:] not in eventDB:
+            try:
+                refDB.update({str(number[1:]): True})
+            except AttributeError:
+                refDB.set({str(number[1:]): True})
+            sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Jemison Division. Send 'Add Jemison' again to be removed")
+            sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         return True
 
 def returnErrorMsg(error, number):  # Error messages
