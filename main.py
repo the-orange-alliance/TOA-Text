@@ -303,7 +303,7 @@ def avgPoints(number, splitParts):  # Average total points
             round(teleOpSum, 2)) + " || Average score - " + str(round(float(autoSum + teleOpSum), 2)))
         return True
 
-def addLive(number, splitParts):  # Adds users to live alert threads One, Two, or Three
+def addLive(number, splitParts):  # Adds users to live alert threads Franklin or Jemison
     '''if "addlive" in splitParts and liveMatchKey != "":
         print(str(number) + " Used AddLive")
         refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
@@ -444,8 +444,8 @@ def addLive(number, splitParts):  # Adds users to live alert threads One, Two, o
             sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         return True
     if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
-        franklinKey = "1819-CMP-HOU2"
-        refDB = db.reference('liveEvents/' + str(franklinKey).upper())
+        jemisonKey = "1819-CMP-HOU2"
+        refDB = db.reference('liveEvents/' + str(jemisonKey).upper())
         try:
             eventDB = list(refDB.order_by_key().get().keys())
         except AttributeError:
