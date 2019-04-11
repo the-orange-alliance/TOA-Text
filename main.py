@@ -97,7 +97,7 @@ def newLiveAlerts(): #Captures generic match info
         matchInfo = request.get_json(force=True)
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
-        for usersNum in eventsDB[matchInfo[0]["match_key"]]:
+        for usersNum in eventsDB[matchInfo[0]["event_key"]]:
             sendText("+" + usersNum, "Recieved match " + str(eventsDB[0]["match_name"]))
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
