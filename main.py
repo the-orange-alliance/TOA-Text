@@ -91,34 +91,14 @@ def receiveText():  # Code executed upon receiving text
     t.start()
     return (str(resp))
 
-@app.route("/match", methods=['POST'])
+@app.route("/recieveHook", methods=['POST'])
 def newLiveAlerts(): #Captures generic match info
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         matchInfo = request.get_json(force=True)
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
         for usersNum in eventsDB[0]["match_key"]:
-            sendText(usersNum, "Recieved match " + str(eventsDB[0]["match_name"]))
-        if webhookKey == request.headers.get('webhookKey'):
-            resBody = '{"_code":200,"_message":"Key request successful"}'
-        elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
-            resBody = '{"_code":200,"_message":"Localhost request successful"}'
-    else:
-        resBody = '{"_code":401,"_message":"Missing or invalid key"}'
-    res = make_response(str(resBody))
-    res.headers['Content-Type'] = 'application/json'
-    print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
-    return res
-
-@app.route("/match_details", methods=['POST'])
-def newLiveAlertDetails(): #Captures specific details about a match
-    if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
-        matchInfo = request.get_json(force=True)
-        print(str(matchInfo))
-        refDB = db.reference('liveEvents')
-        eventsDB = refDB.order_by_key().get()
-        for usersNum in eventsDB[0]["match_key"]:
-            sendText(usersNum, "Recieved match " + str(eventsDB[0]["match_name"]))
+            sendText("+" + usersNum, "Recieved match " + str(eventsDB[0]["match_name"]))
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
