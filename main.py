@@ -2689,10 +2689,17 @@ def sendMass(splitParts, rawMsg, requester):
         try:
             refDB = db.reference('liveEvents')
             eventsDB = refDB.order_by_key().get()
+            strippedList = splitParts
+            strippedList.pop(0)
+            strippedList.pop(0)
+            strippedMsg = ' '.join(strippedList)
             for number in eventsDB[str(splitParts[splitParts.index("eventmsg")+1]).upper()].keys():
-                sendText("+"+number, rawMsg.replace("eventmsg " + str(splitParts[splitParts.index("eventmsg")+1]) + " ", ""), False)
+                sendText("+"+number, str(strippedMsg), False)
             return True
-        except:
+        except KeyError:
+            sendText(requester, "This eventmsg was not sent!")
+            return True
+        except AttributeError:
             sendText(requester, "This eventmsg was not sent!")
             return True
 
