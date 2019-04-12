@@ -95,6 +95,7 @@ def receiveText():  # Code executed upon receiving text
 def newLiveAlerts(): #Captures generic match info
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         matchInfo = request.get_json(force=True)
+        print(str(matchInfo))
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
         for usersNum in eventsDB[matchInfo[0]["event_key"]]:
