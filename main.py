@@ -91,7 +91,7 @@ def receiveText():  # Code executed upon receiving text
     t.start()
     return (str(resp))
 
-@app.route("/recieveHook", methods=['POST'])
+@app.route("/receiveHook", methods=['POST'])
 def newLiveAlerts(): #Captures generic match info
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         matchInfo = request.get_json(force=True)
