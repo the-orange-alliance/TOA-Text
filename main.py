@@ -98,28 +98,9 @@ def newLiveAlerts(): #Captures generic match info
         print(str(matchInfo))
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
-        teamGet = requests.get(apiURL + "match/" + str(matchInfo['message_data']["match_key"]) + "/participants",
-                                 headers=apiHeaders)
-        redOne = ""
-        redTwo = ""
-        blueOne = ""
-        blueTwo = ""
-        for i in range(len(teamGet.json())):
-            if teamGet.json()[i]["station"] < 19:
-                if teamGet.json()[i]["station_status"] != -1:
-                    if redOne == "":
-                        redOne = teamGet.json()[i]["team_key"]
-                    elif redTwo == "":
-                        redTwo = teamGet.json()[i]["team_key"]
-            if teamGet.json()[i]["station"] > 19:
-                if teamGet.json()[i]["station_status"] != -1:
-                    if blueOne == "":
-                        blueOne = teamGet.json()[i]["team_key"]
-                    elif blueTwo == "":
-                        blueTwo = teamGet.json()[i]["team_key"]
         userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
-        userMsg += matchInfo['message_data']["red_score"] + " red [" + redOne + ", " + redTwo + "], "
-        userMsg += matchInfo['message_data']["blue_score"] + " blue [" + blueOne + ", " + blueTwo + "]"
+        userMsg += matchInfo['message_data']["red_score"] + " red [" + "], "
+        userMsg += matchInfo['message_data']["blue_score"] + " blue [" + "]"
         for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
             sendText("+" + usersNum, userMsg)
         if webhookKey == request.headers.get('webhookKey'):
