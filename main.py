@@ -63,7 +63,7 @@ numTwoList = []
 
 mainNum = ""
 secNum = ""
-class myThread(threading.Thread):  # Thread created upon request
+class incomingText(threading.Thread):  # Thread created upon request
     def __init__(self, name, sendnum, msgbody):
         threading.Thread.__init__(self)
         self.name = name
@@ -87,7 +87,7 @@ def receiveText():  # Code executed upon receiving text
     elif twilioNum == "+16146666924" and number in numTwoList:
         numTwoList.remove(number)
     resp = MessagingResponse()
-    t = myThread(number, number, message_body)
+    t = incomingText(number, number, message_body)
     t.start()
     return (str(resp))
 
@@ -98,8 +98,8 @@ def newLiveAlerts(): #Captures generic match info
         print(str(matchInfo))
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
-        for usersNum in eventsDB[matchInfo[0]["event_key"]]:
-            sendText("+" + usersNum, "Recieved match " + str(matchInfo[0]["match_name"]))
+        for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
+            sendText("+" + usersNum, "Recieved match " + str(matchInfo['message_data']["match_name"]))
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
