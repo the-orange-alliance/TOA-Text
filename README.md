@@ -1,2 +1,2 @@
 # TOA-Text
-Texting service for getting TOA data
+SMS based service to quickly query team and event information
