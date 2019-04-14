@@ -617,7 +617,7 @@ def sendHelp(number, splitParts, rawRequest):  # Sends message to any admin in h
         return False
 
 def liveStats(number, splitParts):
-    return True
+    return False
     '''if "team" in splitParts:
         if "livestats" in splitParts:
             if "ranking" in splitParts:
@@ -1160,6 +1160,7 @@ def checkAdvInfo(splitParts):  # Code to request advanced team info
         metricCount(10)
         eventr = requests.get(apiURL + "team/" + splitParts[splitParts.index("team") + 1] + "/matches/1819",
                               headers=apiHeaders)
+
         eventsList = eventr.json()
         autoTeamSum = 0
         teleOpTeamSum = 0
