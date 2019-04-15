@@ -99,8 +99,8 @@ def newLiveAlerts(): #Captures generic match info
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
         userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
-        userMsg += matchInfo['message_data']["red_score"] + " red [" + "], "
-        userMsg += matchInfo['message_data']["blue_score"] + " blue [" + "]"
+        userMsg += str(matchInfo['message_data']["red_score"]) + " red [" + "], "
+        userMsg += str(matchInfo['message_data']["blue_score"]) + " blue [" + "]"
         for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
             sendText("+" + usersNum, userMsg)
         if webhookKey == request.headers.get('webhookKey'):
