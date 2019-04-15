@@ -95,12 +95,27 @@ def receiveText():  # Code executed upon receiving text
 def newLiveAlerts(): #Captures generic match info
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         matchInfo = request.get_json(force=True)
+        if matchInfo['message_type'] != "match_scored":
+            return
         print(str(matchInfo))
         refDB = db.reference('liveEvents')
         eventsDB = refDB.order_by_key().get()
-        userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
-        userMsg += str(matchInfo['message_data']["red_score"]) + " red [" + "], "
-        userMsg += str(matchInfo['message_data']["blue_score"]) + " blue [" + "]"
+        redList = []
+        blueList = []
+        personR = requests.get(apiURL + "match/" + matchInfo['message_data']['match_key'] + "participants",headers=apiHeaders)
+        for i in range(len(personR.json())):
+            if personR.json()[i]["station"] < 19:
+                redList.append(personR.json()[i]["team_key"])
+            elif personR.json()[i]["station"] > 19:
+                blueList.append(personR.json()[i]["team_key"])
+        try:
+            userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
+            userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + " "
+            userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
+        except:
+            userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
+            userMsg += str(matchInfo['message_data']["red_score"]) + " red, "
+            userMsg += str(matchInfo['message_data']["blue_score"]) + " blue"
         for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
             sendText("+" + usersNum, userMsg)
         if webhookKey == request.headers.get('webhookKey'):
