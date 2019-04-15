@@ -102,7 +102,7 @@ def newLiveAlerts(): #Captures generic match info
         eventsDB = refDB.order_by_key().get()
         redList = []
         blueList = []
-        personR = requests.get(apiURL + "match/" + matchInfo['message_data']['match_key'] + "participants",headers=apiHeaders)
+        personR = requests.get(apiURL + "match/" + matchInfo['message_data']['match_key'] + "/participants",headers=apiHeaders)
         for i in range(len(personR.json())):
             if personR.json()[i]["station"] < 19:
                 redList.append(personR.json()[i]["team_key"])
