@@ -1451,7 +1451,10 @@ def sendMass(splitParts, rawMsg, requester):
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
         for number in phoneDB:
-            sendText(number, rawMsg.replace("massmsg ", ""), False)
+            try:
+                sendText("+" + number, rawMsg.replace("massmsg ", ""), False)
+            except:
+                print("Failed on " + number)
         return True
     elif "eventmsg" in splitParts and requester in adminList:
         try:
