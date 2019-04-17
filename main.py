@@ -16,7 +16,14 @@ cred = credentials.Certificate('TOAFirebase.json')
 default_app = firebase_admin.initialize_app(cred, {
     'databaseURL': 'https://the-orange-alliance.firebaseio.com/'
 })
-
+'''
+Places to edit for Detroit:
+Join alerts commands
+Admin stats command
+Help
+Schedule
+Streams
+'''
 app = Flask(__name__)
 apiURL = "http://theorangealliance.org/api/"
 
@@ -236,7 +243,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Available non-team requests are: avgTotalScore, about, flip, searchTN. Example - 15692:location:name:events or 15692 shortname awards")
             adminHelpStr = ""
             if number in adminList:
-                adminHelpStr += "Admin requests: checkStatus, freeze, metrics, metrics2, pingme, updateavg, updateAdmins, serverstatus"
+                adminHelpStr += "Admin requests: currentInfo, checkStatus, freeze, metrics, pingme, updateavg, updateAdmins, serverstatus"
             if number in eventAdminList:
                 sendText(number, adminHelpStr)
             sendText(number,
@@ -1320,13 +1327,24 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             print("Average auto score - " + str(autoSum) + " || Average TeleOp score - " + str(
                 teleOpSum) + " || Average score - " + str(autoSum + teleOpSum))
             return True
+        elif "currentInfo" in msg or "champInfo" in msg:
+            totalLiveAlertUsers = 0
+            curStr = "Alerts: \n"
+            refDB = db.reference('liveEvents/1819-CMP-HOU1')
+            phoneDB = refDB.order_by_key().get()
+            totalLiveAlertUsers += len(phoneDB)
+            curStr += "Users in Franklin: " + str(len(phoneDB)) + "\n"
+            refDB = db.reference('liveEvents/1819-CMP-HOU2')
+            phoneDB = refDB.order_by_key().get()
+            totalLiveAlertUsers += len(phoneDB)
+            curStr += "Users in Jemison: " + str(len(phoneDB)) + "\n"
+            curStr += "Total: " + str(totalLiveAlertUsers)
+            sendText(number, curStr)
+
     if number in eventAdminList:
         if "metrics" in msg or "metrix" in msg:
             print("Admin " + str(number) + " used the metrics command")
             sendText(number, metricGet())
-            return True
-        elif "metrics2" in msg or "metrix2" in msg:
-            print("Admin " + str(number) + " used the metrics2 command")
             sendText(number, metricTwoGet())
             return True
     else:
@@ -1359,11 +1377,13 @@ def metricTwoGet():  # Retrieves metrics
         data = json.load(read_file)
     metricStr = ""
     metricStr += "Help requests - " + str(data["helpGet"]) + "; "
-    metricStr += "TotalAvg reqs - " + str(data["avgTotalGet"]) + "; "
     metricStr += "TeamAvg reqs - " + str(data["avgGet"]) + "; "
     metricStr += "Match info reqs - " + str(data["matchGet"]) + "; "
     metricStr += "Live Alerts sent - " + str(data["livesSent"]) + "; "
-    metricStr += "OPR reqs - " + str(data["oprGet"])
+    metricStr += "OPR reqs - " + str(data["oprGet"]) + "; "
+    refDB = db.reference('Phones')
+    phoneDB = refDB.order_by_key().get()
+    metricStr += "Users in db - " + str(len(phoneDB))
     return metricStr
 
 def loadAdminList():  # Loads admin numbers off admin.json
