@@ -1327,7 +1327,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             print("Average auto score - " + str(autoSum) + " || Average TeleOp score - " + str(
                 teleOpSum) + " || Average score - " + str(autoSum + teleOpSum))
             return True
-        elif "currentInfo" in msg or "champInfo" in msg:
+        elif "currentinfo" in msg or "champinfo" in msg:
             totalLiveAlertUsers = 0
             curStr = "Alerts: \n"
             refDB = db.reference('liveEvents/1819-CMP-HOU1')
