@@ -1340,7 +1340,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             curStr += "Users in Jemison: " + str(len(phoneDB)) + "\n"
             curStr += "Total: " + str(totalLiveAlertUsers)
             sendText(number, curStr)
-
+            return True
     if number in eventAdminList:
         if "metrics" in msg or "metrix" in msg:
             print("Admin " + str(number) + " used the metrics command")
