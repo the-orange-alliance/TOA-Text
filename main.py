@@ -229,7 +229,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             sendText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             sendText(number,
-                     "Houston Worlds special commands - addJemison, addFranklin (to join live alerts!)")
+                     "Houston Worlds special commands - addJemison + addFranklin (to join live alerts!), streams, schedule")
             sendText(number,
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats, OPR")
             sendText(number,
@@ -249,7 +249,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         sendText(number, "To know more about any commands, use ?:[command] or help:[command]")
         return True
     elif "newcmds" in splitParts:
-        sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN")
+        sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN, OPR")
         return True
     elif "pickup" in splitParts:
         pickupList = ["Baby, are you FTC? Because everyone overlooks you and they shouldn't",
@@ -296,10 +296,20 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         sendText(number, str(runningKeys))
         return True'''
 
-def advertsCheck(number, splitParts):
-    '''if "robotlib" in splitParts:
-    sendText(number, "Need a library for more effectively programming FTC robots? Go to: https://github.com/jdroids/robotlib")
-    return True'''
+def champsCmds(number, splitParts):
+    if "streams" in splitParts or "stream" in splitParts:
+        textStr = "Streams: \n"
+        textStr += "Franklin - https://player.twitch.tv/?channel=firstinspires_franklin \n"
+        textStr += "Jemison - https://player.twitch.tv/?channel=firstinspires_jemison"
+        sendText(number, textStr)
+        sendText(number, "First Championship Channel - https://player.twitch.tv/?channel=firstinspires")
+        return True
+    elif "schedule" in splitParts:
+        textStr = "Schedule: \n"
+        textStr += "Franklin - http://toa.events/1819-CMP-HOU1 \n"
+        textStr += "Jemison - http://toa.events/1819-CMP-HOU2"
+        sendText(number, textStr)
+        return True
     return False
 
 def avgPoints(number, splitParts):  # Average total points
@@ -710,7 +720,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
             return
         if personalizedTeam(number, splitParts):
             return
-        if advertsCheck(number, splitParts) or \
+        if champsCmds(number, splitParts) or \
                 sendHelp(number, splitParts, msg) or \
                 addLive(number, splitParts) or \
                 liveStats(number, splitParts) or \
