@@ -112,9 +112,9 @@ def newLiveAlerts(): #Captures generic match info
         personR = requests.get(apiURL + "match/" + matchInfo['message_data']['match_key'] + "/participants",headers=apiHeaders)
         for i in range(len(personR.json())):
             if personR.json()[i]["station"] < 19:
-                redList.append(personR.json()[i]["team_key"])
+                redList.append(int(personR.json()[i]["team_key"]))
             elif personR.json()[i]["station"] > 19:
-                blueList.append(personR.json()[i]["team_key"])
+                blueList.append(int(personR.json()[i]["team_key"]))
         userMsg = ""
         if "HOU2" in matchInfo['message_data']['match_key']:
             userMsg += "Jemison - "
