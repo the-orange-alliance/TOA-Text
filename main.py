@@ -115,16 +115,22 @@ def newLiveAlerts(): #Captures generic match info
                 redList.append(personR.json()[i]["team_key"])
             elif personR.json()[i]["station"] > 19:
                 blueList.append(personR.json()[i]["team_key"])
+        userMsg = ""
+        if "HOU2" in matchInfo['message_data']['match_key']:
+            userMsg += "Jemison - "
+        elif "HOU1" in matchInfo['message_data']['match_key']:
+            userMsg += "Franklin - "
         try:
-            userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
+            userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
             userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
             userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
         except:
-            userMsg = str(matchInfo['message_data']["match_name"]) + " just ended! "
+            userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
             userMsg += str(matchInfo['message_data']["red_score"]) + " red, "
             userMsg += str(matchInfo['message_data']["blue_score"]) + " blue"
-        for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
-            sendText("+" + usersNum, userMsg)
+        if disableMode == 0:
+            for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
+                sendText("+" + usersNum, userMsg)
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
@@ -712,14 +718,14 @@ def checkTeam(msg, number):  # Code run upon thread starting
         for adminNum in pingList:
             if adminNum != number:
                 sendText(adminNum, number + " made a request")
-    if checkHelp(splitParts, number) is True:  # Checks if a help request was made
-        metricCount(8)
+    if sendMass(splitParts, msg, number):
         return
     if checkAdminMsg(number, splitParts, msg) is True:  # Check if admin request was made
         return
-    if playGames(number, splitParts) is True:
+    if checkHelp(splitParts, number) is True:  # Checks if a help request was made
+        metricCount(8)
         return
-    if sendMass(splitParts, msg, number):
+    if playGames(number, splitParts) is True:
         return
     if disableMode == 0:  # Checks to make sure not disabled/froze
         if avgPoints(number, splitParts) is True:  # Checks if average score was requested
