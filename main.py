@@ -185,14 +185,16 @@ def liveAlerts(matchInfo):
         userMsg += "Franklin - "
     elif "TEST" in matchInfo['message_data']['match_key']:
         userMsg += "Test - "
-    try:
+    if int(matchInfo['message_data']["red_score"]) > int(matchInfo['message_data']["blue_score"]):
+        userMsg += str(matchInfo['message_data']["match_name"]) + " went to the red alliance! "
+    elif int(matchInfo['message_data']["red_score"]) < int(matchInfo['message_data']["blue_score"]):
+        userMsg += str(matchInfo['message_data']["match_name"]) + " went to the blue alliance! "
+    elif int(matchInfo['message_data']["red_score"]) == int(matchInfo['message_data']["blue_score"]):
+        userMsg += str(matchInfo['message_data']["match_name"]) + " was a tie! "
+    else:
         userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
-        userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
-        userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
-    except:
-        userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
-        userMsg += str(matchInfo['message_data']["red_score"]) + " red, "
-        userMsg += str(matchInfo['message_data']["blue_score"]) + " blue"
+    userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
+    userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
     if disableMode == 0:
         for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
             sendText("+" + usersNum, userMsg)
