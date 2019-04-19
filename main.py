@@ -88,7 +88,7 @@ class newAlert(threading.Thread):  # Thread created upon request
         self.parsedJson = parsedJson
     def run(self):
         print("Starting live alert for " + self.name)
-        newAlert(self.parsedJson)
+        liveAlerts(self.parsedJson)
         print("Finished live alert for " + self.name)
 
 @app.route("/sms", methods=['POST'])
