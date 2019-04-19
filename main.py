@@ -209,8 +209,11 @@ def liveAlerts(matchInfo):
                 for teams in savedInfo.keys():
                     if teams == 'global':
                         continue
-                    if teams in redList or teams in blueList:
-                        sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                    try:
+                        if int(teams) in redList or int(teams) in blueList:
+                            sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                            break
+                    except:
                         break
                 else:
                     sendText("+" + userNum, userMsg)
