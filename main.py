@@ -197,6 +197,7 @@ def liveAlerts(matchInfo):
     userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
     if disableMode == 0:
         for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
+            metricCount(12)
             sendText("+" + usersNum, userMsg)
     return
 
@@ -1377,6 +1378,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             print("Admin " + str(number) + " used the metrics command")
             sendText(number, metricGet())
             sendText(number, metricTwoGet())
+            sendText(number, TOAMetrics())
             return True
     else:
         return False
@@ -1412,9 +1414,16 @@ def metricTwoGet():  # Retrieves metrics
     metricStr += "Match info reqs - " + str(data["matchGet"]) + "; "
     metricStr += "Live Alerts sent - " + str(data["livesSent"]) + "; "
     metricStr += "OPR reqs - " + str(data["oprGet"]) + "; "
+    return metricStr
+
+def TOAMetrics():
+    metricStr = ""
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
-    metricStr += "Users in db - " + str(len(phoneDB))
+    metricStr += "TOAText users - " + str(len(phoneDB)) + "; "
+    refDB = db.reference('Users')
+    userDB = refDB.order_by_key().get()
+    metricStr += "myTOA users - " + str(len(userDB))
     return metricStr
 
 def loadAdminList():  # Loads admin numbers off admin.json
