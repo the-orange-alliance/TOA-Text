@@ -171,6 +171,7 @@ def liveAlerts(matchInfo):
         elif personR.json()[i]["station"] > 19:
             blueList.append(int(personR.json()[i]["team_key"]))
     userMsg = ""
+    #Check if score update
     with open("sentKeys.json", "r") as read_file:
         data = json.load(read_file)
     if matchInfo['message_data']['match_key'] in data["keys"]:
@@ -179,10 +180,13 @@ def liveAlerts(matchInfo):
         data["keys"].append(matchInfo['message_data']['match_key'])
     with open("sentKeys.json", "w") as write_file:
         json.dump(data, write_file)
+    #Find event name
     if "HOU2" in matchInfo['message_data']['match_key']:
         userMsg += "Jemison - "
     elif "HOU1" in matchInfo['message_data']['match_key']:
         userMsg += "Franklin - "
+    elif "HOU0" in matchInfo['message_data']['match_key']:
+        userMsg += "Houston Finals - "
     elif "TEST" in matchInfo['message_data']['match_key']:
         userMsg += "Test - "
     if int(matchInfo['message_data']["red_score"]) > int(matchInfo['message_data']["blue_score"]):
@@ -196,9 +200,27 @@ def liveAlerts(matchInfo):
     userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
     userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
     if disableMode == 0:
-        for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
+        for userNum in eventsDB[matchInfo['message_data']["event_key"]]:
+            savedInfo = eventsDB[matchInfo['message_data']["event_key"]][userNum]
             metricCount(12)
-            sendText("+" + usersNum, userMsg)
+            if savedInfo['global'] and len(savedInfo) == 1:
+                sendText("+" + userNum, userMsg)
+            elif savedInfo['global']:
+                for teams in savedInfo.keys():
+                    if teams == 'global':
+                        continue
+                    if teams in redList or teams in blueList:
+                        sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                        break
+                else:
+                    sendText("+" + userNum, userMsg)
+            elif not savedInfo['global'] and len(savedInfo) > 1:
+                for teams in savedInfo.keys():
+                    if teams == 'global':
+                        continue
+                    if teams in redList or teams in blueList:
+                        sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                        break
     return
 
 command_descriptions = {
