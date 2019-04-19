@@ -171,6 +171,14 @@ def liveAlerts(matchInfo):
         elif personR.json()[i]["station"] > 19:
             blueList.append(int(personR.json()[i]["team_key"]))
     userMsg = ""
+    with open("sentKeys.json", "r") as read_file:
+        data = json.load(read_file)
+    if matchInfo['message_data']['match_key'] in data["keys"]:
+        userMsg += "[Score Update] "
+    else:
+        data["keys"].append(matchInfo['message_data']['match_key'])
+    with open("sentKeys.json", "w") as write_file:
+        json.dump(data, write_file)
     if "HOU2" in matchInfo['message_data']['match_key']:
         userMsg += "Jemison - "
     elif "HOU1" in matchInfo['message_data']['match_key']:
