@@ -76,11 +76,20 @@ class incomingText(threading.Thread):  # Thread created upon request
         self.name = name
         self.sendnum = sendnum
         self.msgbody = msgbody
-
     def run(self):
         print("Fetching request to " + self.sendnum)
         checkTeam(self.msgbody, self.sendnum)
         print("Finished request to " + self.sendnum)
+
+class newAlert(threading.Thread):  # Thread created upon request
+    def __init__(self, name, parsedJson):
+        threading.Thread.__init__(self)
+        self.name = name
+        self.parsedJson = parsedJson
+    def run(self):
+        print("Starting live alert for " + self.name)
+        newAlert(self.parsedJson)
+        print("Finished live alert for " + self.name)
 
 @app.route("/sms", methods=['POST'])
 def receiveText():  # Code executed upon receiving text
@@ -104,33 +113,8 @@ def newLiveAlerts(): #Captures generic match info
         matchInfo = request.get_json(force=True)
         if matchInfo['message_type'] != "match_scored":
             return 'wrong_type'
-        print(str(matchInfo))
-        refDB = db.reference('liveEvents')
-        eventsDB = refDB.order_by_key().get()
-        redList = []
-        blueList = []
-        personR = requests.get(apiURL + "match/" + matchInfo['message_data']['match_key'] + "/participants",headers=apiHeaders)
-        for i in range(len(personR.json())):
-            if personR.json()[i]["station"] < 19:
-                redList.append(int(personR.json()[i]["team_key"]))
-            elif personR.json()[i]["station"] > 19:
-                blueList.append(int(personR.json()[i]["team_key"]))
-        userMsg = ""
-        if "HOU2" in matchInfo['message_data']['match_key']:
-            userMsg += "Jemison - "
-        elif "HOU1" in matchInfo['message_data']['match_key']:
-            userMsg += "Franklin - "
-        try:
-            userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
-            userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
-            userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
-        except:
-            userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
-            userMsg += str(matchInfo['message_data']["red_score"]) + " red, "
-            userMsg += str(matchInfo['message_data']["blue_score"]) + " blue"
-        if disableMode == 0:
-            for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
-                sendText("+" + usersNum, userMsg)
+        t = newAlert(matchInfo['message_data']['match_key'], matchInfo)
+        t.start()
         if webhookKey == request.headers.get('webhookKey'):
             resBody = '{"_code":200,"_message":"Key request successful"}'
         elif request.environ['REMOTE_ADDR'] == "127.0.0.1":
@@ -174,6 +158,37 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
             to=str(number)
         )
 
+def liveAlerts(matchInfo):
+    refDB = db.reference('liveEvents')
+    eventsDB = refDB.order_by_key().get()
+    redList = []
+    blueList = []
+    personR = requests.get(apiURL + "match/" + matchInfo['message_data']['match_key'] + "/participants",
+                           headers=apiHeaders)
+    for i in range(len(personR.json())):
+        if personR.json()[i]["station"] < 19:
+            redList.append(int(personR.json()[i]["team_key"]))
+        elif personR.json()[i]["station"] > 19:
+            blueList.append(int(personR.json()[i]["team_key"]))
+    userMsg = ""
+    if "HOU2" in matchInfo['message_data']['match_key']:
+        userMsg += "Jemison - "
+    elif "HOU1" in matchInfo['message_data']['match_key']:
+        userMsg += "Franklin - "
+    elif "TEST" in matchInfo['message_data']['match_key']:
+        userMsg += "Test - "
+    try:
+        userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
+        userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
+        userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
+    except:
+        userMsg += str(matchInfo['message_data']["match_name"]) + " just ended! "
+        userMsg += str(matchInfo['message_data']["red_score"]) + " red, "
+        userMsg += str(matchInfo['message_data']["blue_score"]) + " blue"
+    if disableMode == 0:
+        for usersNum in eventsDB[matchInfo['message_data']["event_key"]]:
+            sendText("+" + usersNum, userMsg)
+    return
 
 command_descriptions = {
     "location": "responds with city and state a team is from",
