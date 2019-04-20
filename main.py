@@ -519,17 +519,17 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                 foundTN = str(split)
         if foundTN == "":
             if number[1:] in eventDB:
-                refDB.update({str(number[1:]): None})
+                refDB.child(number[1:]).update({'global': False})
                 sendText(number, "You have been removed from the live scoring alerts")
             elif number[1:] not in eventDB:
                 try:
-                    refDB.update({str(number[1:]): True})
+                    refDB.child(number[1:]).update({'global': True})
                 except AttributeError:
-                    refDB.set({str(number[1:]): True})
+                    refDB.child(number[1:]).set({'global': True})
                 sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
                 sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
-            if foundTN in numDB[str(number[1:])]:
+            if str(foundTN) in numDB[str(number[1:])]:
                 refDB.child(number[1:]).update({str(number[1:]): None})
             else:
                 try:
