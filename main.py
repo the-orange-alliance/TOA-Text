@@ -517,6 +517,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
         for split in splitParts:
             if split.isdigit():
                 foundTN = str(split)
+                break
         if foundTN == "":
             if number[1:] in eventDB and numDB[number[1:]]['global']:
                 refDB.child(number[1:]).update({'global': False})
@@ -534,8 +535,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     pass
             except:
                 refDB.child(number[1:]).set({'global': False})
-            if str(foundTN) in numDB[str(number[1:])].keys():
-                refDB.child(number[1:]).update({str(number[1:]): None})
+                refDB = db.reference('liveEvents/' + str(franklinKey).upper())
+                numDB = refDB.order_by_key().get()
+            if foundTN in numDB[str(number[1:])].keys():
+                refDB.child(number[1:]).update({str(foundTN): None})
             else:
                 try:
                     refDB.child(number[1:]).update({str(foundTN): True})
