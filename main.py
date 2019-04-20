@@ -1465,7 +1465,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             for split in msg:
                 if split.isdigit():
                     rateLimit = int(split)
-                break
+                    break
             else:
                 rateLimit = 2
             sendText(number, "Rate limit set to " + str(rateLimit))
