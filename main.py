@@ -1467,7 +1467,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 break
             else:
                 rateLimit = 2
-            sendText("Rate limit set to " + str(rateLimit))
+            sendText(number, "Rate limit set to " + str(rateLimit))
             return True
     if number in eventAdminList:
         if "metrics" in msg or "metrix" in msg:
