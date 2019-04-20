@@ -546,26 +546,48 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
                 sendText(number, "You have been added to live alerts for Houston Worlds - Franklin Division team " + foundTN + ". Send 'Add Franklin " + foundTN + "' again to be removed")
-
         return True
     if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
         jemisonKey = "1819-CMP-HOU2"
         refDB = db.reference('liveEvents/' + str(jemisonKey).upper())
         try:
             eventDB = list(refDB.order_by_key().get().keys())
+            numDB = refDB.order_by_key().get()
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
+        foundTN = ""
+        for split in splitParts:
+            if split.isdigit():
+                foundTN = str(split)
+                break
+        if foundTN == "":
+            if number[1:] in eventDB and numDB[number[1:]]['global']:
+                refDB.child(number[1:]).update({'global': False})
+                sendText(number, "You have been removed from the live scoring alerts")
+            elif number[1:] not in eventDB or not numDB[number[1:]]['global']:
+                try:
+                    refDB.child(number[1:]).update({'global': True})
+                except AttributeError:
+                    refDB.child(number[1:]).set({'global': True})
+                sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Jemison Division. Send 'Add Jemison' again to be removed")
+                sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
+        else:
             try:
-                refDB.update({str(number[1:]): True})
-            except AttributeError:
-                refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Jemison Division. Send 'Add Jemison' again to be removed")
-            sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
-        return True
+                if str(foundTN) in numDB[str(number[1:])]:
+                    pass
+            except:
+                refDB.child(number[1:]).set({'global': False})
+                refDB = db.reference('liveEvents/' + str(jemisonKey).upper())
+                numDB = refDB.order_by_key().get()
+            if foundTN in numDB[str(number[1:])].keys():
+                refDB.child(number[1:]).update({str(foundTN): None})
+                sendText(number, "You have been removed from the live scoring alerts for team " + foundTN)
+            else:
+                try:
+                    refDB.child(number[1:]).update({str(foundTN): True})
+                except:
+                    refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
+                sendText(number, "You have been added to live alerts for Houston Worlds - Jemison Division team " + foundTN + ". Send 'Add Jemison " + foundTN + "' again to be removed")
 
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
