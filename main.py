@@ -518,11 +518,10 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
             if split.isdigit():
                 foundTN = str(split)
         if foundTN == "":
-            if number[1:] in eventDB:
-                if numDB[number[1:]]['global']:
-                    refDB.child(number[1:]).update({'global': False})
-                    sendText(number, "You have been removed from the live scoring alerts")
-            elif number[1:] not in eventDB:
+            if number[1:] in eventDB and numDB[number[1:]]['global']:
+                refDB.child(number[1:]).update({'global': False})
+                sendText(number, "You have been removed from the live scoring alerts")
+            elif number[1:] not in eventDB or not numDB[number[1:]]['global']:
                 try:
                     refDB.child(number[1:]).update({'global': True})
                 except AttributeError:
