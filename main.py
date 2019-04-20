@@ -534,7 +534,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     pass
             except:
                 refDB.child(number[1:]).set({'global': False})
-            if str(foundTN) in numDB[str(number[1:])]:
+            if str(foundTN) in numDB[str(number[1:])].keys():
                 refDB.child(number[1:]).update({str(number[1:]): None})
             else:
                 try:
