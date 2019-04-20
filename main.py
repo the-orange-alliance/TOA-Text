@@ -539,11 +539,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                 numDB = refDB.order_by_key().get()
             if foundTN in numDB[str(number[1:])].keys():
                 refDB.child(number[1:]).update({str(foundTN): None})
+                sendText(number, "You have been removed from the live scoring alerts for team " + foundTN)
             else:
                 try:
                     refDB.child(number[1:]).update({str(foundTN): True})
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
+                sendText(number, "You have been added to live alerts for Houston Worlds - Franklin Division team " + foundTN + ". Send 'Add Franklin " + foundTN + "' again to be removed")
+
         return True
     if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
         jemisonKey = "1819-CMP-HOU2"
