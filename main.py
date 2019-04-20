@@ -510,18 +510,32 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
         refDB = db.reference('liveEvents/' + str(franklinKey).upper())
         try:
             eventDB = list(refDB.order_by_key().get().keys())
+            numDB = refDB.order_by_key().get()
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
-            try:
-                refDB.update({str(number[1:]): True})
-            except AttributeError:
-                refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
-            sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
+        foundTN = ""
+        for split in splitParts:
+            if split.isdigit():
+                foundTN = str(split)
+        if foundTN == "":
+            if number[1:] in eventDB:
+                refDB.update({str(number[1:]): None})
+                sendText(number, "You have been removed from the live scoring alerts")
+            elif number[1:] not in eventDB:
+                try:
+                    refDB.update({str(number[1:]): True})
+                except AttributeError:
+                    refDB.set({str(number[1:]): True})
+                sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
+                sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
+        else:
+            if foundTN in numDB[str(number[1:])]:
+                refDB.child(number[1:]).update({str(number[1:]): None})
+            else:
+                try:
+                    refDB.child(number[1:]).update({str(foundTN): True})
+                except:
+                    refDB.child(number[1:]).update({str(foundTN): True, 'global': False})
         return True
     if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
         jemisonKey = "1819-CMP-HOU2"
