@@ -144,8 +144,7 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
     for sms in client.messages.list(limit=50):
         if sms.status == "queued":
             queued += 1
-    while queued >= rateLimit:
-        print("Queue limit has been reached")
+    while queued >= rateLimit or disableMode == 1:
         queued = 0
         for sms in client.messages.list(limit=50):
             if sms.status == "queued":
