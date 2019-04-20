@@ -159,6 +159,7 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
         )
 
 def liveAlerts(matchInfo):
+    print(matchInfo)
     refDB = db.reference('liveEvents')
     eventsDB = refDB.order_by_key().get()
     redList = []
