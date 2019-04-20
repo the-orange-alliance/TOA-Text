@@ -202,7 +202,6 @@ def liveAlerts(matchInfo):
     if disableMode == 0:
         for userNum in eventsDB[matchInfo['message_data']["event_key"]]:
             savedInfo = eventsDB[matchInfo['message_data']["event_key"]][userNum]
-            metricCount(12)
             if savedInfo['global'] and len(savedInfo) == 1:
                 sendText("+" + userNum, userMsg)
             elif savedInfo['global']:
