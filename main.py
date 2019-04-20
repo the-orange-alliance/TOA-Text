@@ -588,6 +588,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
                 sendText(number, "You have been added to live alerts for Houston Worlds - Jemison Division team " + foundTN + ". Send 'Add Jemison " + foundTN + "' again to be removed")
+        return True
 
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
