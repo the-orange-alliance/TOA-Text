@@ -149,7 +149,7 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
         for sms in client.messages.list(limit=50):
             if sms.status == "queued":
                 queued += 1
-        sleep(rand.randrange(0.4, 2.7, 0.1))
+        sleep(0.45)
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
