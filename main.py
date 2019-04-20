@@ -5,7 +5,7 @@ from twilio.rest import Client
 import random as rand
 import threading
 import json
-import time
+from time import sleep
 from flask import Flask, request, make_response
 from fuzzywuzzy import fuzz
 import firebase_admin
@@ -65,7 +65,7 @@ webhookKey = ""
 autoSum = 0
 teleOpSum = 0
 
-rateLimit = 2
+rateLimit = 1
 
 #list of numbers who want to use the 810 number
 numTwoList = []
@@ -144,12 +144,13 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
     for sms in client.messages.list(limit=50):
         if sms.status == "queued":
             queued += 1
-    while queued > rateLimit:
+    while queued >= rateLimit:
         print("Queue limit has been reached")
         queued = 0
         for sms in client.messages.list(limit=50):
             if sms.status == "queued":
                 queued += 1
+        sleep(0.5)
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
@@ -173,7 +174,6 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
         )
 
 def liveAlerts(matchInfo):
-    print(matchInfo)
     refDB = db.reference('liveEvents')
     eventsDB = refDB.order_by_key().get()
     redList = []
@@ -1459,6 +1459,15 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             curStr += "Users in Jemison: " + str(len(phoneDB)) + "\n"
             curStr += "Total: " + str(totalLiveAlertUsers)
             sendText(number, curStr)
+            return True
+        elif 'ratelim' in msg or 'rl' in msg:
+            for split in msg:
+                if split.isdigit():
+                    rateLimit = int(split)
+                break
+            else:
+                rateLimit = 2
+            sendText("Rate limit set to " + str(rateLimit))
             return True
     if number in eventAdminList:
         if "metrics" in msg or "metrix" in msg:
