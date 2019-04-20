@@ -1345,6 +1345,7 @@ def checkAdvInfo(splitParts):  # Code to request advanced team info
 def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     global disableMode
     global pingList
+    global rateLimit
     global autoSum
     global teleOpSum
     global helpNumList
