@@ -169,10 +169,10 @@ def queueManage():
         adminFound = False
         for intmsg in range(len(data["queue"])):
             for adminNum in adminList:
-                if adminNum in data["queue"][intmsg]["msg"]:
+                if adminNum in data["queue"][intmsg]["number"]:
                     adminFound = True
                     msg = data["queue"][intmsg]["msg"]
-                    number = data["queue"][intmsg]["msg"]
+                    number = data["queue"][intmsg]["number"]
                     data["queue"].pop(intmsg)
                     break
             if adminFound:
