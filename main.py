@@ -93,6 +93,15 @@ class newAlert(threading.Thread):  # Thread created upon request
         liveAlerts(self.parsedJson)
         print("Finished live alert for " + self.name)
 
+class sendText(threading.Thread):  # Thread created upon request
+    def __init__(self, name):
+        threading.Thread.__init__(self)
+        self.name = name
+    def run(self):
+        print("Started queue manager")
+        while True:
+            queueManage()
+
 @app.route("/sms", methods=['POST'])
 def receiveText():  # Code executed upon receiving text
     global numTwoList
@@ -128,26 +137,41 @@ def newLiveAlerts(): #Captures generic match info
     print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
     return res
 
-def sendText(number, msg, override = False):  # Code to send outgoing text
-    global numTwoList
-    account_sid = twilioAccountID
-    auth_token = twilioAuth
-    client = Client(account_sid, auth_token)
+def processText(number, msg, override = False):  # Code to send outgoing text
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
     userNum = number[1:]
     if not phoneDB[userNum]['opted'] and not override:
         return
+    with open("queue.json", "r") as read_file:
+        data = json.load(read_file)
+    msgDict = {"msg":  str(msg), "number": str(number)}
+    data["queue"].append(msgDict)
+    with open("queue.json", "w") as write_file:
+        json.dump(data, write_file)
+
+
+def queueManage():
+    sleep(0.45)
+    account_sid = twilioAccountID
+    auth_token = twilioAuth
+    client = Client(account_sid, auth_token)
+    with open("queue.json", "r") as read_file:
+        data = json.load(read_file)
     queued = 0
     for sms in client.messages.list(limit=50):
         if sms.status == "queued":
             queued += 1
-    while queued >= rateLimit or disableMode == 1:
-        queued = 0
-        for sms in client.messages.list(limit=50):
-            if sms.status == "queued":
-                queued += 1
-        sleep(0.45)
+    if len(data["queue"]) < 1:
+        return
+    elif queued >= rateLimit or disableMode == 1:
+        return
+    else:
+        msg = data["queue"][0]["msg"]
+        number = data["queue"][0]["number"]
+        data["queue"].pop(0)
+    with open("queue.json", "w") as write_file:
+        json.dump(data, write_file)
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
@@ -215,25 +239,25 @@ def liveAlerts(matchInfo):
         for userNum in eventsDB[matchInfo['message_data']["event_key"]]:
             savedInfo = eventsDB[matchInfo['message_data']["event_key"]][userNum]
             if savedInfo['global'] and len(savedInfo) == 1:
-                sendText("+" + userNum, userMsg)
+                processText("+" + userNum, userMsg)
             elif savedInfo['global']:
                 for teams in savedInfo.keys():
                     if teams == 'global':
                         continue
                     try:
                         if int(teams) in redList or int(teams) in blueList:
-                            sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                            processText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
                             break
                     except:
                         break
                 else:
-                    sendText("+" + userNum, userMsg)
+                    processText("+" + userNum, userMsg)
             elif not savedInfo['global'] and len(savedInfo) > 1:
                 for teams in savedInfo.keys():
                     if teams == 'global':
                         continue
                     if teams in redList or teams in blueList:
-                        sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                        processText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
                         break
     return
 
@@ -274,7 +298,8 @@ admin_command_descriptions = {
     "banhelp": "bans a number from using the sendhelp feature [banhelp:number (with +1)]",
     "joinhelp": "toggles if users can message you with issues",
     "sendhelp": "responds to a sendhelp user (sendhelp:number(with +1):msg",
-    "updateavg": "updates average score to previous weekends"
+    "updateavg": "updates average score to previous weekends",
+    "ratelim": "sets the maximum number of texts allowed in the twilio queue"
 }
 event_command_descriptions = {
     "togglelive": "toggles the state of live scoring [togglelive:[matchKey]]",
@@ -286,7 +311,7 @@ event_command_descriptions = {
 def respond_by_command(descriptions, splitParts, number):
     for command, description in descriptions.items():
         if command in splitParts:
-            sendText(number, command + " - " + description)
+            processText(number, command + " - " + description)
             return True
     return False
 
@@ -301,30 +326,30 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         if not sent:
             sent = respond_by_command(command_descriptions, splitParts, number)
         if not sent:
-            sendText(number,
+            processText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
-            sendText(number,
+            processText(number,
                      "Houston Worlds special commands - addJemison + addFranklin (to join live alerts!), streams, schedule")
-            sendText(number,
+            processText(number,
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats, OPR")
-            sendText(number,
+            processText(number,
                      "Available non-team requests are: avgTotalScore, about, flip, searchTN. Example - 15692:location:name:events or 15692 shortname awards")
             adminHelpStr = ""
             if number in adminList:
-                adminHelpStr += "Admin requests: currentInfo, checkStatus, freeze, metrics, pingme, updateavg, updateAdmins, serverstatus"
+                adminHelpStr += "Admin requests: currentInfo, checkStatus, freeze, metrics, pingme, updateavg, updateAdmins, serverstatus, ratelim"
             if number in eventAdminList:
-                sendText(number, adminHelpStr)
-            sendText(number,
+                processText(number, adminHelpStr)
+            processText(number,
                      "Use ?:[command] to know more! Text STOP to opt-out of using TOAText. Use START to opt back into TOAText.")
         return True
     elif "about" in splitParts:
-        sendText(number,
+        processText(number,
                  "TOAText is a portable, on-the-go version of The Orange Alliance. It can provide information about teams, along with statistics")
-        sendText(number, "Created by Team 15692 in collaboration with The Orange Alliance. Special thanks to Dominic Hupp for maintaining this project")
-        sendText(number, "To know more about any commands, use ?:[command] or help:[command]")
+        processText(number, "Created by Team 15692 in collaboration with The Orange Alliance. Special thanks to Dominic Hupp for maintaining this project")
+        processText(number, "To know more about any commands, use ?:[command] or help:[command]")
         return True
     elif "newcmds" in splitParts:
-        sendText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN, OPR")
+        processText(number, "New features - checklives, livestats, matchinfo, addLive, searchTN, OPR")
         return True
     elif "pickup" in splitParts:
         pickupList = ["Baby, are you FTC? Because everyone overlooks you and they shouldn't",
@@ -341,7 +366,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Are you the end game of Rover Ruckus, because I just wanna hang out",
                      "Are you a mineral? Cause picking you up is my goal"]
         randomNum = rand.randint(0, len(pickupList) - 1)
-        sendText(number, pickupList[randomNum])
+        processText(number, pickupList[randomNum])
         print("User used pickup command")
         return True
     else:
@@ -368,7 +393,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             runningKeys += "addLive5 - none; "
         else:
             runningKeys += "addLive5 - " + str(liveMatchKeyFive) + "; "
-        sendText(number, str(runningKeys))
+        processText(number, str(runningKeys))
         return True'''
 
 def champsCmds(number, splitParts):
@@ -376,21 +401,21 @@ def champsCmds(number, splitParts):
         textStr = "Streams: \n"
         textStr += "Franklin - https://player.twitch.tv/?channel=firstinspires_franklin \n"
         textStr += "Jemison - https://player.twitch.tv/?channel=firstinspires_jemison"
-        sendText(number, textStr)
-        sendText(number, "First Championship Channel - https://player.twitch.tv/?channel=firstinspires")
+        processText(number, textStr)
+        processText(number, "First Championship Channel - https://player.twitch.tv/?channel=firstinspires")
         return True
     elif "schedule" in splitParts:
         textStr = "Schedule: \n"
         textStr += "Franklin - http://toa.events/1819-CMP-HOU1 \n"
         textStr += "Jemison - http://toa.events/1819-CMP-HOU2"
-        sendText(number, textStr)
+        processText(number, textStr)
         return True
     return False
 
 def avgPoints(number, splitParts):  # Average total points
     if "avgtotalscore" in splitParts or "avgtotalpoints" in splitParts:
         print(number + " requested average score")
-        sendText(number, "Average auto score - " + str(round(autoSum, 2)) + " || Average TeleOp score - " + str(
+        processText(number, "Average auto score - " + str(round(autoSum, 2)) + " || Average TeleOp score - " + str(
             round(teleOpSum, 2)) + " || Average score - " + str(round(float(autoSum + teleOpSum), 2)))
         return True
 
@@ -404,18 +429,18 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
             eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
+            processText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
             try:
                 refDB.update({str(number[1:]): True})
             except AttributeError:
                 refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
-            sendText(number,
+            processText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
+            processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     elif "addlive" in splitParts:
-        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        processText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
     if "addlive2" in splitParts and liveMatchKeyTwo != "":
         print(str(number) + " Used AddLive2")
@@ -426,28 +451,28 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
             eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
+            processText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
             try:
                 refDB.update({str(number[1:]): True})
             except AttributeError:
                 refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
-            sendText(number,
+            processText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
+            processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     elif "addlive2" in splitParts:
-        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        processText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
     if "addliveftcscores" in splitParts:
         print(str(number) + " Used addliveftcscores")
         if number in FTCScoresList:
             FTCScoresList.remove(number)
-            sendText(number, "You have been removed from the live scoring alerts")
+            processText(number, "You have been removed from the live scoring alerts")
         elif number not in FTCScoresList:
             FTCScoresList.append(number)
-            sendText(number, "You have been added to the live scoring alerts. Send addliveftcscores again to be removed")
-            sendText(number,
+            processText(number, "You have been added to the live scoring alerts. Send addliveftcscores again to be removed")
+            processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     if "addlive3" in splitParts and liveMatchKeyThree != "":
@@ -459,18 +484,18 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
             eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
+            processText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
             try:
                 refDB.update({str(number[1:]): True})
             except AttributeError:
                 refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts. Send addLive3 again to be removed")
-            sendText(number,
+            processText(number, "You have been added to the live scoring alerts. Send addLive3 again to be removed")
+            processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     elif "addlive3" in splitParts:
-        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        processText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
     if "addlive4" in splitParts and liveMatchKeyFour != "":
         print(str(number) + " Used AddLive4")
@@ -481,18 +506,18 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
             eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
+            processText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
             try:
                 refDB.update({str(number[1:]): True})
             except AttributeError:
                 refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts. Send addLive4 again to be removed")
-            sendText(number,
+            processText(number, "You have been added to the live scoring alerts. Send addLive4 again to be removed")
+            processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     elif "addlive4" in splitParts:
-        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        processText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True
     if "addlive5" in splitParts and liveMatchKeyFive != "":
         print(str(number) + " Used AddLive4")
@@ -503,18 +528,18 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
             eventDB = []
         if number[1:] in eventDB:
             refDB.update({str(number[1:]): None})
-            sendText(number, "You have been removed from the live scoring alerts")
+            processText(number, "You have been removed from the live scoring alerts")
         elif number[1:] not in eventDB:
             try:
                 refDB.update({str(number[1:]): True})
             except AttributeError:
                 refDB.set({str(number[1:]): True})
-            sendText(number, "You have been added to the live scoring alerts. Send addLive5 again to be removed")
-            sendText(number,
+            processText(number, "You have been added to the live scoring alerts. Send addLive5 again to be removed")
+            processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
         return True
     elif "addlive5" in splitParts:
-        sendText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
+        processText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True'''
     if "add" in splitParts and "franklin" in splitParts or "addfranklin" in splitParts:
         franklinKey = "1819-CMP-HOU1"
@@ -532,14 +557,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
         if foundTN == "":
             if number[1:] in eventDB and numDB[number[1:]]['global']:
                 refDB.child(number[1:]).update({'global': False})
-                sendText(number, "You have been removed from the live scoring alerts")
+                processText(number, "You have been removed from the live scoring alerts")
             elif number[1:] not in eventDB or not numDB[number[1:]]['global']:
                 try:
                     refDB.child(number[1:]).update({'global': True})
                 except AttributeError:
                     refDB.child(number[1:]).set({'global': True})
-                sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
-                sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
+                processText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
+                processText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
             try:
                 if str(foundTN) in numDB[str(number[1:])]:
@@ -550,13 +575,13 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                 numDB = refDB.order_by_key().get()
             if foundTN in numDB[str(number[1:])].keys():
                 refDB.child(number[1:]).update({str(foundTN): None})
-                sendText(number, "You have been removed from the live scoring alerts for team " + foundTN)
+                processText(number, "You have been removed from the live scoring alerts for team " + foundTN)
             else:
                 try:
                     refDB.child(number[1:]).update({str(foundTN): True})
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
-                sendText(number, "You have been added to live alerts for Houston Worlds - Franklin Division team " + foundTN + ". Send 'Add Franklin " + foundTN + "' again to be removed")
+                processText(number, "You have been added to live alerts for Houston Worlds - Franklin Division team " + foundTN + ". Send 'Add Franklin " + foundTN + "' again to be removed")
         return True
     if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
         jemisonKey = "1819-CMP-HOU2"
@@ -574,14 +599,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
         if foundTN == "":
             if number[1:] in eventDB and numDB[number[1:]]['global']:
                 refDB.child(number[1:]).update({'global': False})
-                sendText(number, "You have been removed from the live scoring alerts")
+                processText(number, "You have been removed from the live scoring alerts")
             elif number[1:] not in eventDB or not numDB[number[1:]]['global']:
                 try:
                     refDB.child(number[1:]).update({'global': True})
                 except AttributeError:
                     refDB.child(number[1:]).set({'global': True})
-                sendText(number, "You have been added to the live scoring alerts for Houston Worlds - Jemison Division. Send 'Add Jemison' again to be removed")
-                sendText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
+                processText(number, "You have been added to the live scoring alerts for Houston Worlds - Jemison Division. Send 'Add Jemison' again to be removed")
+                processText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
             try:
                 if str(foundTN) in numDB[str(number[1:])]:
@@ -592,13 +617,13 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                 numDB = refDB.order_by_key().get()
             if foundTN in numDB[str(number[1:])].keys():
                 refDB.child(number[1:]).update({str(foundTN): None})
-                sendText(number, "You have been removed from the live scoring alerts for team " + foundTN)
+                processText(number, "You have been removed from the live scoring alerts for team " + foundTN)
             else:
                 try:
                     refDB.child(number[1:]).update({str(foundTN): True})
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
-                sendText(number, "You have been added to live alerts for Houston Worlds - Jemison Division team " + foundTN + ". Send 'Add Jemison " + foundTN + "' again to be removed")
+                processText(number, "You have been added to live alerts for Houston Worlds - Jemison Division team " + foundTN + ". Send 'Add Jemison " + foundTN + "' again to be removed")
         return True
 
 def returnErrorMsg(error, number):  # Error messages
@@ -619,7 +644,7 @@ def returnErrorMsg(error, number):  # Error messages
         errorMsgText += " (EC4)"
     if error != "valDay":
         errorMsgText += "  [For help, text 'help' or '?']"
-    sendText(number, errorMsgText)
+    processText(number, errorMsgText)
 
 def parseRequest(number, userRequest):  # Turns user request into usable data
     # requestParts = userRequest.split(',')
@@ -686,13 +711,13 @@ def checkName(number, splitParts, raw):
                 except AttributeError:
                     continue
             if found == False:
-                sendText(number, "That team name was not found. Please try again")
+                processText(number, "That team name was not found. Please try again")
             elif found == True:
                 if ":" in raw:
                     searchingName = str(raw.split(":", 2)[2])
                 else:
                     searchingName = str(raw.split(" ", 2)[2])
-                sendText(number, str(searchingName) + " could be team " + str(possible[:-2]))
+                processText(number, str(searchingName) + " could be team " + str(possible[:-2]))
         elif not splitParts[splitParts.index("searchtn") + 1].isdigit():
             if ":" in raw:
                 searchingName = str(raw.split(":", 1)[1]).lower().replace(" ", "")
@@ -711,18 +736,18 @@ def checkName(number, splitParts, raw):
                     except AttributeError:
                         continue
             else:
-                sendText(number, "That is an invalid search word. (EC3 - Overflow)")
+                processText(number, "That is an invalid search word. (EC3 - Overflow)")
                 return True
             if found == False:
-                sendText(number, "That team name was not found. Please try again")
+                processText(number, "That team name was not found. Please try again")
             elif found == True:
                 if ":" in raw:
                     searchingName = str(raw.split(":", 1)[1])
                 else:
                     searchingName = str(raw.split(" ", 1)[1])
-                sendText(number, formatResp(str(searchingName) + " could be team " + str(possible), "", 0))
+                processText(number, formatResp(str(searchingName) + " could be team " + str(possible), "", 0))
         else:
-            sendText(number, "That is not a valid team name")
+            processText(number, "That is not a valid team name")
         return True
 
 def formatResp(strOne, strTwo, allFlag):  # Formats end response to send to user [Truncates and removes end characters]
@@ -749,16 +774,16 @@ def sendHelp(number, splitParts, rawRequest):  # Sends message to any admin in h
         print(str(number) + " used sendHelp")
         print(str(bannedNums))
         if helpNumList and number not in bannedNums:
-            sendText(number, "All admin in help list have been pinged")
+            processText(number, "All admin in help list have been pinged")
             splitParts = rawRequest.lower().replace(" ", " ").split(":")
             for i in helpNumList:
-                sendText(i, "Help requested from " + str(number))
-                sendText(i, "From user: " + splitParts[splitParts.index("sendhelp") + 1])
+                processText(i, "Help requested from " + str(number))
+                processText(i, "From user: " + splitParts[splitParts.index("sendhelp") + 1])
         elif number in bannedNums:
-            sendText(number,
+            processText(number,
                      "You have been banned from using sendHelp. Ping @Huppdo on discord in the FTC or TOA discord servers to discuss")
         else:
-            sendText(number,
+            processText(number,
                      "There are no admins in the help list. Ping @Huppdo on discord in the FTC or TOA discord servers")
         return True
     else:
@@ -773,10 +798,10 @@ def liveStats(number, splitParts):
                 try:
                     for i in range(len(rankR.json())):
                         if rankR.json()[i]["team_key"] == splitParts[splitParts.index("team") + 1]:
-                            sendText(number, "Team " + str(splitParts[splitParts.index("team") + 1]) + " is ranked " + str(rankR.json()[i]["rank"]) + " at their current event.")
+                            processText(number, "Team " + str(splitParts[splitParts.index("team") + 1]) + " is ranked " + str(rankR.json()[i]["rank"]) + " at their current event.")
                             break
                 except:
-                    sendText(number, "Sorry, however that information could not be found. Perhaps the rankings for this event aren't uploaded yet")
+                    processText(number, "Sorry, however that information could not be found. Perhaps the rankings for this event aren't uploaded yet")
             elif "matchscores" in splitParts:
                 matchR = requests.get(apiURL + "event/" + liveMatchKey + "/matches", headers=apiHeaders)
                 for i in range(len(matchR.json())):
@@ -795,7 +820,7 @@ def liveStats(number, splitParts):
                                 blueStr += "Endgame - " + str(jsonInfo["blue_end_score"]) + "; "
                                 blueStr += "Total - " + str(jsonInfo["blue_score"]) + ""
             else:
-                sendText(number, "Please provide a more indepth command for livestats")
+                processText(number, "Please provide a more indepth command for livestats")
             return True
     elif "livestats" in splitParts:
         if "topteams" in splitParts:
@@ -811,10 +836,10 @@ def liveStats(number, splitParts):
                         secTeam = rankR.json()[i]["team_key"]
                     elif rankR.json()[i]["rank"] == 3:
                         thirdTeam = rankR.json()[i]["team_key"]
-                sendText(number,
+                processText(number,
                          "Top ranked team - " + str(topTeam) + ", 2nd - " + str(secTeam) + ", 3rd - " + str(thirdTeam))
             except:
-                sendText(number,
+                processText(number,
                          "Sorry, however that information could not be found. Perhaps the rankings for this event aren't uploaded yet")
             return True'''
 
@@ -827,7 +852,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
     if pingList:  # Checks for numbers to send a ping to
         for adminNum in pingList:
             if adminNum != number:
-                sendText(adminNum, number + " made a request")
+                processText(adminNum, number + " made a request")
     if sendMass(splitParts, msg, number):
         return
     if checkAdminMsg(number, splitParts, msg) is True:  # Check if admin request was made
@@ -855,7 +880,7 @@ def checkTeam(msg, number):  # Code run upon thread starting
         else:
             checkTeamFlags(splitParts, number)
     else:
-        sendText(number,
+        processText(number,
                  "TOAText is currently disabled by an admin for maintenance or other reasons! Please check back later.")
 
 def oprCheck(number, splitParts):
@@ -870,11 +895,11 @@ def oprCheck(number, splitParts):
             namer = requests.get(apiURL + "event/" + r.json()[i]["event_key"], headers=apiHeaders)
             for a in range(len(eventr.json())):
                 if eventr.json()[a]["team_key"] == splitParts[splitParts.index("team") + 1]:
-                    sendText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[0]["event_name"] + " (" + namer.json()[0]["start_date"][:10]  + ") was " + str(eventr.json()[a]["opr"]))
+                    processText(number,"The OPR for " + str(splitParts[splitParts.index("team") + 1]) + " at " + namer.json()[0]["event_name"] + " (" + namer.json()[0]["start_date"][:10]  + ") was " + str(eventr.json()[a]["opr"]))
                     msgSent = True
                     break
         if not msgSent:
-            sendText(number, "This team did not have any OPRs tied to it. Check again later")
+            processText(number, "This team did not have any OPRs tied to it. Check again later")
         return True
 
 def checkOnlyTeam(teamNum, number):  # Code for if request just has team
@@ -894,16 +919,16 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team
         if advancedInfo == "" and basicInfo == "":
             returnErrorMsg("falseArg", number)
         else:
-            sendText(number, formatResp(basicInfo, advancedInfo, 1))
+            processText(number, formatResp(basicInfo, advancedInfo, 1))
     else:
-        sendText(number, "Invalid Team Number")
+        processText(number, "Invalid Team Number")
         return False
 
 def playGames(number, splitParts):  # plays flip a coin or RPS
     if "flip" in splitParts:
         print(str(number) + " Used Flip")
         results = ["Heads!", "Tails!"]
-        sendText(number, rand.choice(results))
+        processText(number, rand.choice(results))
         return True
     if "rps" in splitParts:
         expressions = ["Rock", "Paper", "Scissors"]
@@ -914,7 +939,7 @@ def playGames(number, splitParts):  # plays flip a coin or RPS
                 userChoice = i
 
         if userChoice is None:
-            sendText(number, "Send rps with 'rock', 'paper', or 'scissors' to play")
+            processText(number, "Send rps with 'rock', 'paper', or 'scissors' to play")
             return True
 
         print(str(number) + " Used RPS")
@@ -929,7 +954,7 @@ def playGames(number, splitParts):  # plays flip a coin or RPS
         else:
             result = "You lose"
 
-        sendText(number, response + result)
+        processText(number, response + result)
         return True
 
 def checkTeamFlags(splitParts, number):  # Code for if request has flags
@@ -966,9 +991,9 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
             if advancedInfo == "" and basicInfo == "":
                 returnErrorMsg("falseArg", number)
             else:
-                sendText(number, formatResp(basicInfo, advancedInfo, allFlag))
+                processText(number, formatResp(basicInfo, advancedInfo, allFlag))
         else:
-            sendText(number, "Invalid Team Number")
+            processText(number, "Invalid Team Number")
             return False
     else:
         refDB = db.reference('Phones')
@@ -1000,7 +1025,7 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
                 if advancedInfo == "" and basicInfo == "":
                     returnErrorMsg("falseArg", number)
                 else:
-                    sendText(number, formatResp(basicInfo, advancedInfo, allFlag))
+                    processText(number, formatResp(basicInfo, advancedInfo, allFlag))
             else:
                 returnErrorMsg('invalTeam', number)
                 return False
@@ -1043,7 +1068,7 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                 matchStr = "Matches with " + str(splitParts[splitParts.index("team") + 1]) + "-    "
                 for i in range(len(r.json())):
                     matchStr += str(r.json()[i]["match_key"]) + ", "
-                sendText(number, formatResp(matchStr, "", 0))
+                processText(number, formatResp(matchStr, "", 0))
             elif splitParts[splitParts.index("team") + 2] == "matchinfo" and "1819" in splitParts[
                 splitParts.index("team") + 3]:
                 print(str(number) + "got a match info")
@@ -1060,9 +1085,9 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                 else:
                     matchStr = bluecompileinfo(matchR.json())
                 if station == -1:
-                    sendText(number, "The requested team was not in the match or is missing info")
+                    processText(number, "The requested team was not in the match or is missing info")
                 else:
-                    sendText(number, formatResp(matchStr, "", 0))
+                    processText(number, formatResp(matchStr, "", 0))
             elif splitParts[splitParts.index("team") + 2] == "matchinfo" and splitParts[
                 splitParts.index("team") + 3] == "minmax":
                 print(str(number) + "got a teams worst and best match (minMax)")
@@ -1102,14 +1127,14 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                     matchStr += redcompileinfo(matchR.json())
                 else:
                     matchStr += bluecompileinfo(matchR.json())
-                sendText(number, matchStr)
+                processText(number, matchStr)
                 matchR = requests.get(apiURL + "match/" + maxMatch, headers=apiHeaders)
                 matchStr = "Best game: "
                 if maxStation == 10 or maxStation == 11 or maxStation == 12 or maxStation == 13 or maxStation == 14:
                     matchStr += redcompileinfo(matchR.json())
                 else:
                     matchStr += bluecompileinfo(matchR.json())
-                sendText(number, matchStr)
+                processText(number, matchStr)
             elif splitParts[splitParts.index("team") + 2] == "matchinfo" and splitParts[
                 splitParts.index("team") + 3] == "topthree":
                 print(str(number) + "got a team's best 3 matches (topThree)")
@@ -1179,7 +1204,7 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                         matchStr += redcompileinfo(matchR.json())
                     else:
                         matchStr += bluecompileinfo(matchR.json())
-                    sendText(number, matchStr)
+                    processText(number, matchStr)
                 if sndMatch != "":
                     matchR = requests.get(apiURL + "match/" + sndMatch, headers=apiHeaders)
                     matchStr = "2nd best game: "
@@ -1187,7 +1212,7 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                         matchStr += redcompileinfo(matchR.json())
                     else:
                         matchStr += bluecompileinfo(matchR.json())
-                    sendText(number, matchStr)
+                    processText(number, matchStr)
                 if thirdMatch != "":
                     matchR = requests.get(apiURL + "match/" + thirdMatch, headers=apiHeaders)
                     matchStr = "3rd best game: "
@@ -1195,12 +1220,12 @@ def getTeamMatches(number, splitParts):  # Code to view a teams matches
                         matchStr += redcompileinfo(matchR.json())
                     else:
                         matchStr += bluecompileinfo(matchR.json())
-                    sendText(number, matchStr)
+                    processText(number, matchStr)
             else:
-                sendText(number,
+                processText(number,
                          "Incorrect format. Use ?:matchinfo or helpme:matchinfo for information on how to use this command")
         except IndexError:
-            sendText(number,
+            processText(number,
                      "Incorrect format. Use ?:matchinfo or helpme:matchinfo for information on how to use this command")
         return True
 
@@ -1351,11 +1376,11 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             print("Admin " + str(number) + " used the freeze command")
             if disableMode == 0:
                 disableMode = 1
-                sendText(number, "Disable mode Enabled!")
+                processText(number, "Disable mode Enabled!")
                 print("Disable mode - on")
             else:
                 disableMode = 0
-                sendText(number, "Disable mode Disabled!")
+                processText(number, "Disable mode Disabled!")
                 print("Disable mode - off")
             return True
         elif "updateadmins" in msg:
@@ -1364,30 +1389,30 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             return True
         elif "checkstatus" in msg:
             print("Admin " + str(number) + " used the checkStatus command")
-            sendText(number, "TOAText is online and you are on the admin list!")
+            processText(number, "TOAText is online and you are on the admin list!")
             return True
         elif "pingme" in msg:
             print("Admin " + str(number) + " used the pingme command")
             if number in pingList:
                 pingList.remove(number)
-                sendText(number, "Removed from ping list")
+                processText(number, "Removed from ping list")
             elif number not in pingList:
                 pingList.append(number)
-                sendText(number, "Added to ping list")
+                processText(number, "Added to ping list")
             return True
         elif "joinhelp" in msg:
             print("Admin " + str(number) + " used the joinHelp command")
             if number in helpNumList:
                 helpNumList.remove(number)
-                sendText(number, "Removed from help list")
+                processText(number, "Removed from help list")
             elif number not in helpNumList:
                 helpNumList.append(number)
-                sendText(number, "Added to help list")
+                processText(number, "Added to help list")
             return True
         elif "sendhelp" in msg:
             print("Admin " + str(number) + " used the sendHelp command")
             splitParts = rawRequest.lower().replace(" ", " ").split(":")
-            sendText(str(splitParts[1]), "From admin - " + str(splitParts[2]))
+            processText(str(splitParts[1]), "From admin - " + str(splitParts[2]))
             return True
         elif "serverstatus" in msg or "ss" in msg:
             r = requests.get(functionsURL + "serverStatus", headers=functionsHeaders)
@@ -1398,7 +1423,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 procID = resp[x]["pm_id"]
                 procStat = resp[x]["pm2_env"]["status"]
                 totalStatus += str(procName) + "(" + str(procID) + ") is " + str(procStat) + "; "
-            sendText(number, formatResp(str(totalStatus), "", 0))
+            processText(number, formatResp(str(totalStatus), "", 0))
             return True
         elif "banhelp" in msg:
             print("Admin " + str(number) + " used the banHelp command")
@@ -1456,7 +1481,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             totalLiveAlertUsers += len(phoneDB)
             curStr += "Users in Jemison: " + str(len(phoneDB)) + "\n"
             curStr += "Total: " + str(totalLiveAlertUsers)
-            sendText(number, curStr)
+            processText(number, curStr)
             return True
         elif 'ratelim' in msg or 'rl' in msg:
             for split in msg:
@@ -1465,14 +1490,14 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                     break
             else:
                 rateLimit = 2
-            sendText(number, "Rate limit set to " + str(rateLimit))
+            processText(number, "Rate limit set to " + str(rateLimit))
             return True
     if number in eventAdminList:
         if "metrics" in msg or "metrix" in msg:
             print("Admin " + str(number) + " used the metrics command")
-            sendText(number, metricGet())
-            sendText(number, metricTwoGet())
-            sendText(number, TOAMetrics())
+            processText(number, metricGet())
+            processText(number, metricTwoGet())
+            processText(number, TOAMetrics())
             return True
     else:
         return False
@@ -1587,11 +1612,11 @@ def personalizedTeam(number, splitParts):
                         firstMsg += ". Also, you have an account level of " + str(userSortDB[UID]["level"]) + " (" + levelDefinitions[int(userSortDB[UID]["level"]) - 1] + ")"
                 except:
                     firstMsg += ""
-                sendText(number, firstMsg)
+                processText(number, firstMsg)
             else:
                 print("That user exists and has no user ID")
         except:
-            sendText(number, "Your phone number has not been linked to a myTOA profile (EC4)")
+            processText(number, "Your phone number has not been linked to a myTOA profile (EC4)")
             return True
         try:
             eventNumDB = list(userSortDB[UID]["favTeams"].keys())
@@ -1605,9 +1630,9 @@ def personalizedTeam(number, splitParts):
             for i in eventNumDB:
                 teamStr += str(i) + ", "
             teamStr = teamStr[:-2]
-            sendText(number, teamStr)
+            processText(number, teamStr)
         else:
-            sendText(number, "You have not set any favorite teams in your myTOA profile!")
+            processText(number, "You have not set any favorite teams in your myTOA profile!")
         return True
 
 def sendMass(splitParts, rawMsg, requester):
@@ -1616,7 +1641,7 @@ def sendMass(splitParts, rawMsg, requester):
         phoneDB = refDB.order_by_key().get()
         for number in phoneDB:
             try:
-                sendText("+" + number, rawMsg.replace("massmsg ", ""), False)
+                processText("+" + number, rawMsg.replace("massmsg ", ""), False)
             except:
                 print("Failed on " + number)
         return True
@@ -1630,17 +1655,17 @@ def sendMass(splitParts, rawMsg, requester):
                 userMsg = userMsg[1:]
             for attendeeNum in eventsDB[str(splitParts[splitParts.index("eventmsg") + 1]).upper()].keys():
                 userNum = "+" + attendeeNum
-                sendText(str(userNum), str(userMsg), False)
+                processText(str(userNum), str(userMsg), False)
             print(userMsg)
             return True
         except KeyError:
-            sendText(requester, "This eventmsg was not sent!")
+            processText(requester, "This eventmsg was not sent!")
             return True
         except ValueError:
-            sendText(requester, "This eventmsg was not sent!")
+            processText(requester, "This eventmsg was not sent!")
             return True
         except AttributeError:
-            sendText(requester, "This eventmsg was not sent!")
+            processText(requester, "This eventmsg was not sent!")
             return True
 
 def optOutIn(userNum, splitParts):
@@ -1653,15 +1678,15 @@ def optOutIn(userNum, splitParts):
         print("Phone number added to DB")
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
-        sendText(number, "Welcome to TOAText! Send 'help' to receive a list of commands and how to use them!")
+        processText(number, "Welcome to TOAText! Send 'help' to receive a list of commands and how to use them!")
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
-        sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin", True)
+        processText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin", True)
         print(str(userNum) + " has opted out")
         return True
     elif "start" in splitParts:
         refDB.child(userNum).update({'opted': True})
-        sendText(number, "You have now rejoined TOAText and can use all the features")
+        processText(number, "You have now rejoined TOAText and can use all the features")
         return True
     if not phoneDB[userNum]['opted']:
         print("An opted out user (" + str(number) + ") has tried to make a request")
@@ -1677,5 +1702,5 @@ if __name__ == "__main__":  # starts the whole program
     checkAdminMsg(str(adminList[0]), ["updateavg", "startup"], "")  # Does a update for the averages upon boot
     for num in adminList:
         if "740" in num:
-            sendText(str(num), str(adminList), True)
+            processText(str(num), str(adminList), True)
     app.run(host='0.0.0.0', port=5001)
