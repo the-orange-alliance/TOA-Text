@@ -342,6 +342,8 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                 processText(number, adminHelpStr)
             processText(number,
                      "Use ?:[command] to know more! Text STOP to opt-out of using TOAText. Use START to opt back into TOAText.")
+            processText(number,
+                        "Use ?:[command] to know more! Text MSGOPT to toggle getting TOA Annoucements through TOAText")
         return True
     elif "about" in splitParts:
         processText(number,
@@ -1658,7 +1660,8 @@ def sendMass(splitParts, rawMsg, requester):
         phoneDB = refDB.order_by_key().get()
         for number in phoneDB:
             try:
-                processText("+" + number, rawMsg.replace("massmsg ", ""), False)
+                if phoneDB[number]["msgopt"]:
+                    processText("+" + number, rawMsg.replace("massmsg ", ""), False)
             except:
                 print("Failed on " + number)
         return True
