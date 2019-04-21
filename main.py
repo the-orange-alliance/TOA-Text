@@ -1703,4 +1703,6 @@ if __name__ == "__main__":  # starts the whole program
     for num in adminList:
         if "740" in num:
             processText(str(num), str(adminList), True)
+    textSend = sendText("textSend")
+    textSend.start()
     app.run(host='0.0.0.0', port=5001)
