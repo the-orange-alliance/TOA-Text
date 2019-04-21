@@ -217,12 +217,12 @@ def liveAlerts(matchInfo):
     with open("sentKeys.json", "w") as write_file:
         json.dump(data, write_file)
     #Find event name
-    if "HOU2" in matchInfo['message_data']['match_key']:
-        userMsg += "Jemison - "
-    elif "HOU1" in matchInfo['message_data']['match_key']:
-        userMsg += "Franklin - "
-    elif "HOU0" in matchInfo['message_data']['match_key']:
-        userMsg += "Houston Finals - "
+    if "DET2" in matchInfo['message_data']['match_key']:
+        userMsg += "Ochoa - "
+    elif "DET1" in matchInfo['message_data']['match_key']:
+        userMsg += "Edison - "
+    elif "DET0" in matchInfo['message_data']['match_key']:
+        userMsg += "Detroit Finals - "
     elif "TEST" in matchInfo['message_data']['match_key']:
         userMsg += "Test - "
     if int(matchInfo['message_data']["red_score"]) > int(matchInfo['message_data']["blue_score"]):
@@ -331,7 +331,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             processText(number,
                      "Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             processText(number,
-                     "Houston Worlds special commands - addJemison + addFranklin (to join live alerts!), streams, schedule")
+                     "Detroit Worlds special commands - addEdison + addOchoa (to join live alerts!), streams, schedule")
             processText(number,
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats, OPR")
             processText(number,
@@ -408,8 +408,8 @@ def champsCmds(number, splitParts):
         return True
     elif "schedule" in splitParts:
         textStr = "Schedule: \n"
-        textStr += "Franklin - http://toa.events/1819-CMP-HOU1 \n"
-        textStr += "Jemison - http://toa.events/1819-CMP-HOU2"
+        textStr += "Edison - http://toa.events/1819-CMP-DET1 \n"
+        textStr += "Ochoa - http://toa.events/1819-CMP-DET2"
         processText(number, textStr)
         return True
     return False
@@ -421,7 +421,7 @@ def avgPoints(number, splitParts):  # Average total points
             round(teleOpSum, 2)) + " || Average score - " + str(round(float(autoSum + teleOpSum), 2)))
         return True
 
-def addLive(number, splitParts):  # Adds users to live alert threads Franklin or Jemison
+def addLive(number, splitParts):  # Adds users to live alert threads Edison or Ochoa
     '''if "addlive" in splitParts and liveMatchKey != "":
         print(str(number) + " Used AddLive")
         refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
@@ -543,9 +543,9 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
     elif "addlive5" in splitParts:
         processText(number, "That channel is not currently live. Try again later or subscribe from the web portal!")
         return True'''
-    if "add" in splitParts and "franklin" in splitParts or "addfranklin" in splitParts:
-        franklinKey = "1819-CMP-HOU1"
-        refDB = db.reference('liveEvents/' + str(franklinKey).upper())
+    if "add" in splitParts and "edison" in splitParts or "addedison" in splitParts:
+        edisonKey = "1819-CMP-DET1"
+        refDB = db.reference('liveEvents/' + str(edisonKey).upper())
         try:
             eventDB = list(refDB.order_by_key().get().keys())
             numDB = refDB.order_by_key().get()
@@ -565,7 +565,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     refDB.child(number[1:]).update({'global': True})
                 except AttributeError:
                     refDB.child(number[1:]).set({'global': True})
-                processText(number, "You have been added to the live scoring alerts for Houston Worlds - Franklin Division. Send 'Add Franklin' again to be removed")
+                processText(number, "You have been added to the live scoring alerts for Detroit Worlds - Edison Division. Send 'Add Edison' again to be removed")
                 processText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
             try:
@@ -573,7 +573,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     pass
             except:
                 refDB.child(number[1:]).set({'global': False})
-                refDB = db.reference('liveEvents/' + str(franklinKey).upper())
+                refDB = db.reference('liveEvents/' + str(edisonKey).upper())
                 numDB = refDB.order_by_key().get()
             if foundTN in numDB[str(number[1:])].keys():
                 refDB.child(number[1:]).update({str(foundTN): None})
@@ -583,11 +583,11 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     refDB.child(number[1:]).update({str(foundTN): True})
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
-                processText(number, "You have been added to live alerts for Houston Worlds - Franklin Division team " + foundTN + ". Send 'Add Franklin " + foundTN + "' again to be removed")
+                processText(number, "You have been added to live alerts for Detroit Worlds - Edison Division team " + foundTN + ". Send 'Add Edison " + foundTN + "' again to be removed")
         return True
-    if "add" in splitParts and "jemison" in splitParts or "addjemison" in splitParts:
-        jemisonKey = "1819-CMP-HOU2"
-        refDB = db.reference('liveEvents/' + str(jemisonKey).upper())
+    if "add" in splitParts and "ochoa" in splitParts or "addochoa" in splitParts:
+        ochoaKey = "1819-CMP-DET2"
+        refDB = db.reference('liveEvents/' + str(ochoaKey).upper())
         try:
             eventDB = list(refDB.order_by_key().get().keys())
             numDB = refDB.order_by_key().get()
@@ -607,7 +607,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     refDB.child(number[1:]).update({'global': True})
                 except AttributeError:
                     refDB.child(number[1:]).set({'global': True})
-                processText(number, "You have been added to the live scoring alerts for Houston Worlds - Jemison Division. Send 'Add Jemison' again to be removed")
+                processText(number, "You have been added to the live scoring alerts for Detroit Worlds - Ochoa Division. Send 'Add Ochoa' again to be removed")
                 processText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
             try:
@@ -615,7 +615,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     pass
             except:
                 refDB.child(number[1:]).set({'global': False})
-                refDB = db.reference('liveEvents/' + str(jemisonKey).upper())
+                refDB = db.reference('liveEvents/' + str(ochoaKey).upper())
                 numDB = refDB.order_by_key().get()
             if foundTN in numDB[str(number[1:])].keys():
                 refDB.child(number[1:]).update({str(foundTN): None})
@@ -625,9 +625,9 @@ def addLive(number, splitParts):  # Adds users to live alert threads Franklin or
                     refDB.child(number[1:]).update({str(foundTN): True})
                 except:
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
-                processText(number, "You have been added to live alerts for Houston Worlds - Jemison Division team " + foundTN + ". Send 'Add Jemison " + foundTN + "' again to be removed")
+                processText(number, "You have been added to live alerts for Detroit Worlds - Ochoa Division team " + foundTN + ". Send 'Add Ochoa " + foundTN + "' again to be removed")
         return True
-
+    
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
     errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
@@ -1474,14 +1474,14 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
         elif "currentinfo" in msg or "champinfo" in msg:
             totalLiveAlertUsers = 0
             curStr = "Alerts: \n"
-            refDB = db.reference('liveEvents/1819-CMP-HOU1')
+            refDB = db.reference('liveEvents/1819-CMP-DET1')
             phoneDB = refDB.order_by_key().get()
             totalLiveAlertUsers += len(phoneDB)
-            curStr += "Users in Franklin: " + str(len(phoneDB)) + "\n"
-            refDB = db.reference('liveEvents/1819-CMP-HOU2')
+            curStr += "Users in Edison: " + str(len(phoneDB)) + "\n"
+            refDB = db.reference('liveEvents/1819-CMP-DET2')
             phoneDB = refDB.order_by_key().get()
             totalLiveAlertUsers += len(phoneDB)
-            curStr += "Users in Jemison: " + str(len(phoneDB)) + "\n"
+            curStr += "Users in Ochoa: " + str(len(phoneDB)) + "\n"
             curStr += "Total: " + str(totalLiveAlertUsers)
             processText(number, curStr)
             return True
