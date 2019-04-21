@@ -173,7 +173,7 @@ def queueManage():
                     adminFound = True
                     msg = data["queue"][intmsg]["msg"]
                     number = data["queue"][intmsg]["msg"]
-                    data["queue"].pop(0)
+                    data["queue"].pop(intmsg)
                     break
             if adminFound:
                 break
