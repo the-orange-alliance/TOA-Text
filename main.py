@@ -299,7 +299,9 @@ admin_command_descriptions = {
     "joinhelp": "toggles if users can message you with issues",
     "sendhelp": "responds to a sendhelp user (sendhelp:number(with +1):msg",
     "updateavg": "updates average score to previous weekends",
-    "ratelim": "sets the maximum number of texts allowed in the twilio queue"
+    "ratelim": "sets the maximum number of texts allowed in the twilio queue",
+    "queueinfo": "returns the number of texts in the queue and the current limit out of 50",
+    "clearqueue": "clears ALL queued messages"
 }
 event_command_descriptions = {
     "togglelive": "toggles the state of live scoring [togglelive:[matchKey]]",
@@ -336,7 +338,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
                      "Available non-team requests are: avgTotalScore, about, flip, searchTN. Example - 15692:location:name:events or 15692 shortname awards")
             adminHelpStr = ""
             if number in adminList:
-                adminHelpStr += "Admin requests: currentInfo, checkStatus, freeze, metrics, pingme, updateavg, updateAdmins, serverstatus, ratelim"
+                adminHelpStr += "Admin requests: currentInfo, freeze, metrics, pingme, updateavg, updateAdmins, serverstatus, ratelim, queueinfo, clearqueue"
             if number in eventAdminList:
                 processText(number, adminHelpStr)
             processText(number,
@@ -1490,6 +1492,8 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                     break
             else:
                 rateLimit = 2
+            if rateLimit > 50:
+                rateLimit = 50
             processText(number, "Rate limit set to " + str(rateLimit))
             return True
         elif 'queueinfo' in msg:
