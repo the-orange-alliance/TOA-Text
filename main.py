@@ -150,9 +150,8 @@ def processText(number, msg, override = False):  # Code to send outgoing text
     with open("queue.json", "w") as write_file:
         json.dump(data, write_file)
 
-
 def queueManage():
-    sleep(0.25)
+    sleep(0.2)
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
@@ -167,9 +166,21 @@ def queueManage():
     elif queued >= rateLimit or disableMode == 1:
         return
     else:
-        msg = data["queue"][0]["msg"]
-        number = data["queue"][0]["number"]
-        data["queue"].pop(0)
+        adminFound = False
+        for intmsg in range(len(data["queue"])):
+            for adminNum in adminList:
+                if adminNum in data["queue"][intmsg]["msg"]:
+                    adminFound = True
+                    msg = data["queue"][intmsg]["msg"]
+                    number = data["queue"][intmsg]["msg"]
+                    data["queue"].pop(0)
+                    break
+            if adminFound:
+                break
+        else:
+            msg = data["queue"][0]["msg"]
+            number = data["queue"][0]["number"]
+            data["queue"].pop(0)
     with open("queue.json", "w") as write_file:
         json.dump(data, write_file)
     if "+1" in number and number in numTwoList:
