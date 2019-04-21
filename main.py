@@ -65,7 +65,7 @@ webhookKey = ""
 autoSum = 0
 teleOpSum = 0
 
-rateLimit = 1
+rateLimit = 2
 
 #list of numbers who want to use the 810 number
 numTwoList = []
@@ -137,8 +137,6 @@ def sendText(number, msg, override = False):  # Code to send outgoing text
     phoneDB = refDB.order_by_key().get()
     userNum = number[1:]
     if not phoneDB[userNum]['opted'] and not override:
-        return
-    if number not in adminList:
         return
     queued = 0
     for sms in client.messages.list(limit=50):
