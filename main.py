@@ -401,8 +401,8 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
 def champsCmds(number, splitParts):
     if "streams" in splitParts or "stream" in splitParts:
         textStr = "Streams: \n"
-        textStr += "Franklin - https://player.twitch.tv/?channel=firstinspires_franklin \n"
-        textStr += "Jemison - https://player.twitch.tv/?channel=firstinspires_jemison"
+        textStr += "Edison - https://twitch.tv/firstinspires_edison \n"
+        textStr += "Ochoa - https://twitch.tv/firstinspires_ochoa"
         processText(number, textStr)
         processText(number, "First Championship Channel - https://player.twitch.tv/?channel=firstinspires")
         return True
@@ -627,7 +627,7 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
                     refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
                 processText(number, "You have been added to live alerts for Detroit Worlds - Ochoa Division team " + foundTN + ". Send 'Add Ochoa " + foundTN + "' again to be removed")
         return True
-    
+
 def returnErrorMsg(error, number):  # Error messages
     errorMsgText = "Hey there! Thats not very nice of you! (ECU)"
     errorList = ["Whoops. Someone must've forgotten to use a grounding strap!", "This is really grinding my gears",
