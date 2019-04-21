@@ -152,7 +152,7 @@ def processText(number, msg, override = False):  # Code to send outgoing text
 
 
 def queueManage():
-    sleep(0.45)
+    sleep(0.25)
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
