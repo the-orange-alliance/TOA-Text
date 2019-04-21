@@ -1691,11 +1691,11 @@ def optOutIn(userNum, splitParts):
     number = userNum
     userNum = userNum[1:]
     if userNum not in phoneDB:
-        refDB.child(userNum).set({'opted': True})
+        refDB.child(userNum).set({'opted': True, 'msgopt': False})
         print("Phone number added to DB")
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
-        processText(number, "Welcome to TOAText! Send 'help' to receive a list of commands and how to use them!")
+        processText(number, "Welcome to TOAText! Send 'help' to receive a list of commands and how to use them! Send STOP to opt out of TOAText and send START to join back in")
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
         processText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin", True)
@@ -1704,6 +1704,14 @@ def optOutIn(userNum, splitParts):
     elif "start" in splitParts:
         refDB.child(userNum).update({'opted': True})
         processText(number, "You have now rejoined TOAText and can use all the features")
+        return True
+    if 'msgopt' in splitParts:
+        if not phoneDB[userNum]['msgopt']:
+            refDB.child(userNum).update({'msgopt': True})
+            processText(number, "You are now opted back into TOAText annoucements!")
+        else:
+            refDB.child(userNum).update({'msgopt': False})
+            processText(number, "You have been opted out of all TOAText mass annoucements (Note: This does not include live alert annoucements)")
         return True
     if not phoneDB[userNum]['opted']:
         print("An opted out user (" + str(number) + ") has tried to make a request")
