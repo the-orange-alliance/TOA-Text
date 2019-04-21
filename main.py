@@ -166,21 +166,9 @@ def queueManage():
     elif queued >= rateLimit or disableMode == 1:
         return
     else:
-        adminFound = False
-        for intmsg in range(len(data["queue"])):
-            for adminNum in adminList:
-                if adminNum in data["queue"][intmsg]["number"]:
-                    adminFound = True
-                    msg = data["queue"][intmsg]["msg"]
-                    number = data["queue"][intmsg]["number"]
-                    data["queue"].pop(intmsg)
-                    break
-            if adminFound:
-                break
-        else:
-            msg = data["queue"][0]["msg"]
-            number = data["queue"][0]["number"]
-            data["queue"].pop(0)
+        msg = data["queue"][0]["msg"]
+        number = data["queue"][0]["number"]
+        data["queue"].pop(0)
     with open("queue.json", "w") as write_file:
         json.dump(data, write_file)
     if "+1" in number and number in numTwoList:
