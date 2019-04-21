@@ -1492,6 +1492,20 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
                 rateLimit = 2
             processText(number, "Rate limit set to " + str(rateLimit))
             return True
+        elif 'queueinfo' in msg:
+            with open("queue.json", "r") as read_file:
+                data = json.load(read_file)
+            processText(number, "There are " + str(len(data["queue"])) + " messages in the queue. The current rate limit is " + str(rateLimit))
+            return True
+        elif 'clearqueue' in msg or 'clq' in msg:
+            with open("queue.json", "r") as read_file:
+                data = json.load(read_file)
+            try:
+                data["queue"] = []
+                processText(number, "The queue has been cleared!")
+            except:
+                processText(number, "There was an error clearing the queue.")
+            return True
     if number in eventAdminList:
         if "metrics" in msg or "metrix" in msg:
             print("Admin " + str(number) + " used the metrics command")
