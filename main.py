@@ -343,7 +343,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             processText(number,
                      "Use ?:[command] to know more! Text STOP to opt-out of using TOAText. Use START to opt back into TOAText.")
             processText(number,
-                        "Use ?:[command] to know more! Text MSGOPT to toggle getting TOA Annoucements through TOAText")
+                        "Text MSGOPT to toggle getting TOA Annoucements through TOAText")
         return True
     elif "about" in splitParts:
         processText(number,
