@@ -57,6 +57,8 @@ allTeams = []
 
 optOutNums = []
 
+unsentList = []
+
 twilioAccountID = ""
 twilioAuth = ""
 webhookKey = ""
@@ -138,39 +140,33 @@ def newLiveAlerts(): #Captures generic match info
     return res
 
 def processText(number, msg, override = False):  # Code to send outgoing text
+    global unsentList
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
     userNum = number[1:]
     if not phoneDB[userNum]['opted'] and not override:
         return
-    with open("queue.json", "r") as read_file:
-        data = json.load(read_file)
     msgDict = {"msg":  str(msg), "number": str(number)}
-    data["queue"].append(msgDict)
-    with open("queue.json", "w") as write_file:
-        json.dump(data, write_file)
+    unsentList.append(msgDict)
 
 def queueManage():
+    global unsentList
     sleep(0.2)
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
-    with open("queue.json", "r") as read_file:
-        data = json.load(read_file)
     queued = 0
     for sms in client.messages.list(limit=50):
         if sms.status == "queued":
             queued += 1
-    if len(data["queue"]) < 1:
+    if len(unsentList) < 1:
         return
     elif queued >= rateLimit or disableMode == 1:
         return
     else:
-        msg = data["queue"][0]["msg"]
-        number = data["queue"][0]["number"]
-        data["queue"].pop(0)
-    with open("queue.json", "w") as write_file:
-        json.dump(data, write_file)
+        msg = unsentList[0]["msg"]
+        number = unsentList[0]["number"]
+        unsentList.pop(0)
     if "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
@@ -1373,6 +1369,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
     global rateLimit
     global autoSum
     global teleOpSum
+    global unsentList
     global helpNumList
     if number in adminList:
         if "freeze" in msg:  # Disable or enable
@@ -1500,13 +1497,13 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
         elif 'queueinfo' in msg:
             with open("queue.json", "r") as read_file:
                 data = json.load(read_file)
-            processText(number, "There are " + str(len(data["queue"])) + " messages in the queue. The number of allowed queued messages in Twilio is " + str(rateLimit))
+            processText(number, "There are " + str(len(unsentList)) + " messages in the queue. The number of allowed queued messages in Twilio is " + str(rateLimit))
             return True
         elif 'clearqueue' in msg or 'clq' in msg:
             with open("queue.json", "r") as read_file:
                 data = json.load(read_file)
             try:
-                data["queue"] = []
+                unsentList = []
                 processText(number, "The queue has been cleared!")
             except:
                 processText(number, "There was an error clearing the queue.")
