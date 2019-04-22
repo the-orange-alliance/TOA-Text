@@ -2,15 +2,23 @@ import requests
 from twilio import twiml
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
+import boto3
+from botocore.exceptions import ClientError
 import random as rand
 import threading
 import json
+import email
+import email.utils
 from time import sleep
 from flask import Flask, request, make_response
 from fuzzywuzzy import fuzz
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db
+
+SENDER = "The Orange Alliance <toa@notifications.maths22.com>"
+AWS_REGION = "us-west-2"
+CHARSET = "UTF-8"
 
 cred = credentials.Certificate('TOAFirebase.json')
 default_app = firebase_admin.initialize_app(cred, {
@@ -60,6 +68,8 @@ optOutNums = []
 twilioAccountID = ""
 twilioAuth = ""
 webhookKey = ""
+sesAccessKeyId = ''
+sesSecretAccessKey = ''
 
 # global val for average comp last weekend
 autoSum = 0
@@ -118,6 +128,39 @@ def receiveText():  # Code executed upon receiving text
     t.start()
     return (str(resp))
 
+@app.route("/email", methods=['POST'])
+def receiveEmail():  # Code executed upon receiving text
+    type = request.headers['x-amz-sns-message-type']
+    if type == 'SubscriptionConfirmation':
+        url = json.loads(request.data)['SubscribeURL']
+        requests.get(url)
+        return ("OK")
+    elif type == 'Notification':
+        payload = json.loads(request.data)['Message']
+        # app.logger.info('Payload: ' + str(payload))
+        parsed = json.loads(payload)
+        #get just the email address
+        email_address = email.utils.parseaddr(parsed['mail']['commonHeaders']['from'][0])[1].replace('.',',')
+        b = email.message_from_string(parsed['content'])
+        message_body = ""
+        if b.is_multipart():
+            for part in b.walk():
+                ctype = part.get_content_type()
+                cdispo = str(part.get('Content-Disposition'))
+
+                # skip any text/plain (txt) attachments
+                if ctype == 'text/plain' and 'attachment' not in cdispo:
+                    message_body = part.get_payload(decode=True)  # decode
+                    break
+        # not multipart - i.e. plain text, no attachments, keeping fingers crossed
+        else:
+            message_body = b.get_payload(decode=True)
+        # print("Received from: " + str(number))
+        message_body = message_body.strip()
+        t = incomingText(email_address, email_address, message_body)
+        t.start()
+        return ("ok")
+
 @app.route("/receiveHook", methods=['POST'])
 def newLiveAlerts(): #Captures generic match info
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
@@ -137,10 +180,16 @@ def newLiveAlerts(): #Captures generic match info
     print(resBody + " - " + str(request.environ['REMOTE_ADDR']))
     return res
 
+def trimNumber(number):
+    if "@" in number:
+        return number
+    else:
+        return number[1:]
+
 def processText(number, msg, override = False):  # Code to send outgoing text
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
-    userNum = number[1:]
+    userNum = trimNumber(number)
     if not phoneDB[userNum]['opted'] and not override:
         return
     with open("queue.json", "r") as read_file:
@@ -155,6 +204,13 @@ def queueManage():
     account_sid = twilioAccountID
     auth_token = twilioAuth
     client = Client(account_sid, auth_token)
+
+    aws_client = boto3.client('ses',
+        region_name=AWS_REGION,
+        aws_access_key_id=sesAccessKeyId,
+        aws_secret_access_key=sesSecretAccessKey
+    )
+
     with open("queue.json", "r") as read_file:
         data = json.load(read_file)
     queued = 0
@@ -171,7 +227,30 @@ def queueManage():
         data["queue"].pop(0)
     with open("queue.json", "w") as write_file:
         json.dump(data, write_file)
-    if "+1" in number and number in numTwoList:
+    if "@" in number:
+        try:
+            response = aws_client.send_email(
+                Destination={
+                    'ToAddresses': [ str(number.replace(',', '.')) ],
+                },
+                Message={
+                    'Body': {
+                        'Text': {
+                            'Charset': CHARSET,
+                            'Data': str(msg),
+                        },
+                    },
+                    'Subject': {
+                        'Charset': CHARSET,
+                        'Data': '',
+                    },
+                },
+                Source=SENDER,
+            )
+        # Display an error if something goes wrong.	
+        except ClientError as e:
+            app.logger.error(e.response['Error']['Message'])
+    elif "+1" in number and number in numTwoList:
         message = client.messages \
             .create(
             body=str(msg),
@@ -430,14 +509,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
             eventDB = list(refDB.order_by_key().get().keys())
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
+        if trimNumber(number) in eventDB:
+            refDB.update({str(trimNumber(number)): None})
             processText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
+        elif trimNumber(number) not in eventDB:
             try:
-                refDB.update({str(number[1:]): True})
+                refDB.update({str(trimNumber(number)): True})
             except AttributeError:
-                refDB.set({str(number[1:]): True})
+                refDB.set({str(trimNumber(number)): True})
             processText(number, "You have been added to the live scoring alerts. Send addLive again to be removed")
             processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -452,14 +531,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
             eventDB = list(refDB.order_by_key().get().keys())
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
+        if trimNumber(number) in eventDB:
+            refDB.update({str(trimNumber(number)): None})
             processText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
+        elif trimNumber(number) not in eventDB:
             try:
-                refDB.update({str(number[1:]): True})
+                refDB.update({str(trimNumber(number)): True})
             except AttributeError:
-                refDB.set({str(number[1:]): True})
+                refDB.set({str(trimNumber(number)): True})
             processText(number, "You have been added to the live scoring alerts. Send addLive2 again to be removed")
             processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -485,14 +564,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
             eventDB = list(refDB.order_by_key().get().keys())
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
+        if trimNumber(number) in eventDB:
+            refDB.update({str(trimNumber(number)): None})
             processText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
+        elif trimNumber(number) not in eventDB:
             try:
-                refDB.update({str(number[1:]): True})
+                refDB.update({str(trimNumber(number)): True})
             except AttributeError:
-                refDB.set({str(number[1:]): True})
+                refDB.set({str(trimNumber(number)): True})
             processText(number, "You have been added to the live scoring alerts. Send addLive3 again to be removed")
             processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -507,14 +586,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
             eventDB = list(refDB.order_by_key().get().keys())
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
+        if trimNumber(number) in eventDB:
+            refDB.update({str(trimNumber(number)): None})
             processText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
+        elif trimNumber(number) not in eventDB:
             try:
-                refDB.update({str(number[1:]): True})
+                refDB.update({str(trimNumber(number)): True})
             except AttributeError:
-                refDB.set({str(number[1:]): True})
+                refDB.set({str(trimNumber(number)): True})
             processText(number, "You have been added to the live scoring alerts. Send addLive4 again to be removed")
             processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -529,14 +608,14 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
             eventDB = list(refDB.order_by_key().get().keys())
         except AttributeError:
             eventDB = []
-        if number[1:] in eventDB:
-            refDB.update({str(number[1:]): None})
+        if trimNumber(number) in eventDB:
+            refDB.update({str(trimNumber(number)): None})
             processText(number, "You have been removed from the live scoring alerts")
-        elif number[1:] not in eventDB:
+        elif trimNumber(number) not in eventDB:
             try:
-                refDB.update({str(number[1:]): True})
+                refDB.update({str(trimNumber(number)): True})
             except AttributeError:
-                refDB.set({str(number[1:]): True})
+                refDB.set({str(trimNumber(number)): True})
             processText(number, "You have been added to the live scoring alerts. Send addLive5 again to be removed")
             processText(number,
                      "The Orange Alliance and Team 15692 (and their members) are NOT responsible for any missed matches. Please be responsible")
@@ -558,32 +637,32 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
                 foundTN = str(split)
                 break
         if foundTN == "":
-            if number[1:] in eventDB and numDB[number[1:]]['global']:
-                refDB.child(number[1:]).update({'global': False})
+            if trimNumber(number) in eventDB and numDB[trimNumber(number)]['global']:
+                refDB.child(trimNumber(number)).update({'global': False})
                 processText(number, "You have been removed from the live scoring alerts")
-            elif number[1:] not in eventDB or not numDB[number[1:]]['global']:
+            elif trimNumber(number) not in eventDB or not numDB[trimNumber(number)]['global']:
                 try:
-                    refDB.child(number[1:]).update({'global': True})
+                    refDB.child(trimNumber(number)).update({'global': True})
                 except AttributeError:
-                    refDB.child(number[1:]).set({'global': True})
+                    refDB.child(trimNumber(number)).set({'global': True})
                 processText(number, "You have been added to the live scoring alerts for Detroit Worlds - Edison Division. Send 'Add Edison' again to be removed")
                 processText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
             try:
-                if str(foundTN) in numDB[str(number[1:])]:
+                if str(foundTN) in numDB[str(trimNumber(number))]:
                     pass
             except:
-                refDB.child(number[1:]).set({'global': False})
+                refDB.child(trimNumber(number)).set({'global': False})
                 refDB = db.reference('liveEvents/' + str(edisonKey).upper())
                 numDB = refDB.order_by_key().get()
-            if foundTN in numDB[str(number[1:])].keys():
-                refDB.child(number[1:]).update({str(foundTN): None})
+            if foundTN in numDB[str(trimNumber(number))].keys():
+                refDB.child(trimNumber(number)).update({str(foundTN): None})
                 processText(number, "You have been removed from the live scoring alerts for team " + foundTN)
             else:
                 try:
-                    refDB.child(number[1:]).update({str(foundTN): True})
+                    refDB.child(trimNumber(number)).update({str(foundTN): True})
                 except:
-                    refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
+                    refDB.child(trimNumber(number)).set({str(foundTN): True, 'global': False})
                 processText(number, "You have been added to live alerts for Detroit Worlds - Edison Division team " + foundTN + ". Send 'Add Edison " + foundTN + "' again to be removed")
         return True
     if "add" in splitParts and "ochoa" in splitParts or "addochoa" in splitParts:
@@ -600,32 +679,32 @@ def addLive(number, splitParts):  # Adds users to live alert threads Edison or O
                 foundTN = str(split)
                 break
         if foundTN == "":
-            if number[1:] in eventDB and numDB[number[1:]]['global']:
-                refDB.child(number[1:]).update({'global': False})
+            if trimNumber(number) in eventDB and numDB[trimNumber(number)]['global']:
+                refDB.child(trimNumber(number)).update({'global': False})
                 processText(number, "You have been removed from the live scoring alerts")
-            elif number[1:] not in eventDB or not numDB[number[1:]]['global']:
+            elif trimNumber(number) not in eventDB or not numDB[trimNumber(number)]['global']:
                 try:
-                    refDB.child(number[1:]).update({'global': True})
+                    refDB.child(trimNumber(number)).update({'global': True})
                 except AttributeError:
-                    refDB.child(number[1:]).set({'global': True})
+                    refDB.child(trimNumber(number)).set({'global': True})
                 processText(number, "You have been added to the live scoring alerts for Detroit Worlds - Ochoa Division. Send 'Add Ochoa' again to be removed")
                 processText(number, "The Orange Alliance is NOT responsible for any missed matches. Please be responsible and best of luck!")
         else:
             try:
-                if str(foundTN) in numDB[str(number[1:])]:
+                if str(foundTN) in numDB[str(trimNumber(number))]:
                     pass
             except:
-                refDB.child(number[1:]).set({'global': False})
+                refDB.child(trimNumber(number)).set({'global': False})
                 refDB = db.reference('liveEvents/' + str(ochoaKey).upper())
                 numDB = refDB.order_by_key().get()
-            if foundTN in numDB[str(number[1:])].keys():
-                refDB.child(number[1:]).update({str(foundTN): None})
+            if foundTN in numDB[str(trimNumber(number))].keys():
+                refDB.child(trimNumber(number)).update({str(foundTN): None})
                 processText(number, "You have been removed from the live scoring alerts for team " + foundTN)
             else:
                 try:
-                    refDB.child(number[1:]).update({str(foundTN): True})
+                    refDB.child(trimNumber(number)).update({str(foundTN): True})
                 except:
-                    refDB.child(number[1:]).set({str(foundTN): True, 'global': False})
+                    refDB.child(trimNumber(number)).set({str(foundTN): True, 'global': False})
                 processText(number, "You have been added to live alerts for Detroit Worlds - Ochoa Division team " + foundTN + ". Send 'Add Ochoa " + foundTN + "' again to be removed")
         return True
 
@@ -911,7 +990,7 @@ def checkOnlyTeam(teamNum, number):  # Code for if request just has team
     splitParts.insert(1, teamNum)
     if "_code" not in r.json():
         refDB = db.reference('Phones')
-        userNum = number[1:]
+        userNum = trimNumber(number)
         refDB.child(userNum).update({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
         if liveStats(number, splitParts):
             return
@@ -970,7 +1049,7 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
         allFlag = 0
         if "_code" not in r.json():
             refDB = db.reference('Phones')
-            userNum = number[1:]
+            userNum = trimNumber(number)
             refDB.child(userNum).update({"lastTeam": str(splitParts[splitParts.index("team") + 1])})
             if len(splitParts) == 2 and splitParts[0] == 'team':
                 splitParts.append('all')
@@ -1001,7 +1080,7 @@ def checkTeamFlags(splitParts, number):  # Code for if request has flags
     else:
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
-        userNum = number[1:]
+        userNum = trimNumber(number)
         try:
             splitParts.remove("team")
         except:
@@ -1590,6 +1669,8 @@ def loadAPIKeys():  # Loads Twilio account info off twilio.json
     global apiHeaders
     global functionsHeaders
     global webhookKey
+    global sesAccessKeyId
+    global sesSecretAccessKey
     with open("twilio.json", "r") as read_file:
         data = json.load(read_file)
     twilioAuth = str(data["twilioAuth"])
@@ -1599,6 +1680,8 @@ def loadAPIKeys():  # Loads Twilio account info off twilio.json
                   'X-Application-Origin': 'TOAText'}
     functionsHeaders = {'Authorization': str(data["functionKey"])}
     webhookKey = str(data["webhookKey"])
+    sesAccessKeyId = str(data["sesAccessKeyId"])
+    sesSecretAccessKey = str(data["sesSecretAccessKey"])
 
 def loadAllTeams():  # Requests list of all teams to be stored for string matching
     global allTeams
@@ -1613,7 +1696,7 @@ def personalizedTeam(number, splitParts):
         print("User used myTOA command")
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
-        userNum = number[1:]
+        userNum = trimNumber(number)
         try:
             if phoneDB[userNum]['uid'] != "":
                 UID = str(phoneDB[userNum]['uid'])
@@ -1692,7 +1775,7 @@ def optOutIn(userNum, splitParts):
     refDB = db.reference('Phones')
     phoneDB = refDB.order_by_key().get()
     number = userNum
-    userNum = userNum[1:]
+    userNum = trimNumber(userNum)
     if userNum not in phoneDB:
         refDB.child(userNum).set({'opted': True, 'msgopt': False})
         print("Phone number added to DB")
