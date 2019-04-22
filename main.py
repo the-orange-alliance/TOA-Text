@@ -251,7 +251,7 @@ def liveAlerts(matchInfo):
                 for teams in savedInfo.keys():
                     if teams == 'global':
                         continue
-                    if teams in redList or teams in blueList:
+                    if int(teams) in redList or int(teams) in blueList:
                         processText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
                         break
     return
