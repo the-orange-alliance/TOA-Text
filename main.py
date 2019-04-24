@@ -1483,7 +1483,7 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
             totalLiveAlertUsers += len(phoneDB)
             curStr += "Users in Ochoa: " + str(len(phoneDB)) + "\n"
             for userNum in phoneDB:
-                if userNum not in Total List:
+                if userNum not in totalList:
                     totalList.append(userNum)
             curStr += "Total: " + str(len(totalList))
             processText(number, curStr)
