@@ -330,7 +330,7 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
             processText(number,
                      "Available team requests are: location, name, startYear, website, events, awards, avgScore, matchinfo, livestats, OPR")
             processText(number,
-                     "Available non-team requests are: avgTotalScore, about, flip, searchTN. Example - 15692:location:name:events or 15692 shortname awards")
+                     "Available non-team requests are: avgTotalScore, about, flip, searchTN. Example - 15692:location:name:events or 9971 shortname awards")
             adminHelpStr = ""
             if number in adminList:
                 adminHelpStr += "Admin requests: currentInfo, freeze, metrics, pingme, updateavg, updateAdmins, serverstatus, ratelim, queueinfo, clearqueue"
@@ -344,7 +344,6 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
     elif "about" in splitParts:
         processText(number,
                  "TOAText is a portable, on-the-go version of The Orange Alliance. It can provide information about teams, along with statistics")
-        processText(number, "Created by Team 15692 in collaboration with The Orange Alliance. Special thanks to Dominic Hupp for maintaining this project")
         processText(number, "To know more about any commands, use ?:[command] or help:[command]")
         return True
     elif "newcmds" in splitParts:
