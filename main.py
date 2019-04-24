@@ -1471,15 +1471,21 @@ def checkAdminMsg(number, msg, rawRequest):  # Code for admin commands
         elif "currentinfo" in msg or "champinfo" in msg:
             totalLiveAlertUsers = 0
             curStr = "Alerts: \n"
+            totalList = []
             refDB = db.reference('liveEvents/1819-CMP-DET1')
             phoneDB = refDB.order_by_key().get()
             totalLiveAlertUsers += len(phoneDB)
             curStr += "Users in Edison: " + str(len(phoneDB)) + "\n"
+            for userNum in phoneDB:
+                totalList.append(userNum)
             refDB = db.reference('liveEvents/1819-CMP-DET2')
             phoneDB = refDB.order_by_key().get()
             totalLiveAlertUsers += len(phoneDB)
             curStr += "Users in Ochoa: " + str(len(phoneDB)) + "\n"
-            curStr += "Total: " + str(totalLiveAlertUsers)
+            for userNum in phoneDB:
+                if userNum not in Total List:
+                    totalList.append(userNum)
+            curStr += "Total: " + str(len(totalList))
             processText(number, curStr)
             return True
         elif 'ratelim' in msg or 'rl' in msg:
