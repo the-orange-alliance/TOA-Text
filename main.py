@@ -126,6 +126,7 @@ def newLiveAlerts(): #Captures generic match info
         matchInfo = request.get_json(force=True)
         if matchInfo['message_type'] != "match_scored":
             return 'wrong_type'
+        print(str(matchInfo))
         t = newAlert(matchInfo['message_data']['match_key'], matchInfo)
         t.start()
         if webhookKey == request.headers.get('webhookKey'):
