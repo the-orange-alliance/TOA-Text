@@ -124,9 +124,12 @@ def receiveText():  # Code executed upon receiving text
 def newLiveAlerts(): #Captures generic match info
     if webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         matchInfo = request.get_json(force=True)
-        if matchInfo['message_type'] != "match_scored":
-            return 'wrong_type'
         print(str(matchInfo))
+        if matchInfo['message_type'] != "match_scored":
+            resBody = '{"_code":406,"_message":"Localhost successful, wrong type"}'
+            res = make_response(str(resBody))
+            res.headers['Content-Type'] = 'application/json'
+            return res
         t = newAlert(matchInfo['message_data']['match_key'], matchInfo)
         t.start()
         if webhookKey == request.headers.get('webhookKey'):
