@@ -5,4 +5,4 @@ sudo: false
 
 install: pip3 install twilio flask fuzzywuzzy requests firebase_admin
 
-script: python main.py
+script: echo "Temporary holding place until the test suite exists"
