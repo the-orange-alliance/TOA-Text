@@ -9,7 +9,7 @@ jobs:
     script: echo "Temporary holding place until the test suite exists"
   - stage: deploy
     install: false
-    script: bash -c $DEPLOY_SCRIPT
+    script: bash -c "${DEPLOY_SCRIPT}"
     after_success:
     - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh
     - chmod +x send.sh
