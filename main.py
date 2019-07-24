@@ -318,7 +318,9 @@ def checkHelp(splitParts, number):  # Code to check if help was requested
         return True
     elif "turtle" in splitParts:
         sendText(number,"Welcome to Turtle 2. Best of luck in your competitions today and hopefully you have a great time!")
-        sendText(number,"Make sure to use help to learn more about what you can do!")
+        sendText(number,"Make sure to use help to learn more about what you can do! The schedule for today is:")
+        sendText(number,"9a-10a Team setup, 10a-11:30p Presentations, 11a-1p Mentor lunch & learn, 11a-1p sponsor lunch, 11:30a-12p Lunch/Pizza!")
+        sendText(number,"12p-2p Robot game matches, 2p-2:30p Break, 2:30p-3:30p Robot game, 3:30p-4:30 Alliance selection and finals")
         return True
     elif "pickup" in splitParts:
         pickupList = ["Baby, are you FTC? Because everyone overlooks you and they shouldn't",
