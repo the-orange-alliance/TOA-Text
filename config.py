@@ -7,3 +7,4 @@ apiHeaders = {'content-type': 'application/json',
               'X-Application-Origin': 'TOAText'}
 functionsURL = "https://functions.theorangealliance.org/"
 functionsHeaders = {'Authorization': ''}
+adminList = []
