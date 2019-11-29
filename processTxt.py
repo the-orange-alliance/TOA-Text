@@ -10,7 +10,7 @@ import firebase
 
 def checkTeam(msg, number):
     splitMsg = parseMessage(msg)
-    if not firebase.optInOut(splitMsg,number):
+    if firebase.optInOut(splitMsg,number):
         return
     response = False
     functList = [adminRequests,nonTeamRequests,teamRequests]
@@ -29,9 +29,9 @@ def checkTeam(msg, number):
         randomNum = rand.randint(0, len(errorList) - 1)
         textI.sendText(number,errorList[randomNum])
     else:
-        for str in response:
-            print(str)
-            textI.sendText(number,str)
+        for sendStr in response:
+            print(sendStr)
+            textI.sendText(number,sendStr)
     return
 
 def teamRequests(msg, number):
