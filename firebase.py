@@ -45,7 +45,7 @@ def optInOut(splitParts, userNum):
         return True
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
-        textI.sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin", True)
+        textI.sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin")
         print(str(userNum) + " has opted out")
         return False
     elif "start" in splitParts:
