@@ -42,21 +42,21 @@ def optInOut(splitParts, userNum):
         refDB = db.reference('Phones')
         phoneDB = refDB.order_by_key().get()
         textI.sendText(number, "Welcome to TOAText! Send 'help' to receive a list of commands and how to use them!")
-        return True
+        return False
     if "quit" in splitParts or "stop" in splitParts:
         refDB.child(userNum).update({'opted': False})
         textI.sendText(number, "You have now opted out of ALL TOAText messages. Send START to rejoin")
         print(str(userNum) + " has opted out")
-        return False
+        return True
     elif "start" in splitParts:
         refDB.child(userNum).update({'opted': True})
         textI.sendText(number, "You have now rejoined TOAText and can use all the features")
-        return True
+        return False
     if not phoneDB[userNum]['opted']:
         print("An opted out user (" + str(number) + ") has tried to make a request")
-        return False
-    else:
         return True
+    else:
+        return False
 
 def myTOA(msg, number):
     ansList = []
