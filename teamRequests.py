@@ -12,6 +12,17 @@ def basicInfo(msg, number):
             break
     else:
         return False
+    r = requests.get(config.apiURL + "team/" + team,
+                     headers=config.apiHeaders)
+    resp = r.json()
+    teamStr = ''
+    teamStr += str(resp[0]["team_number"]) + " - "
+    teamStr += resp[0]["team_name_short"] + ", "
+    teamStr += "Rookie Year: " + str(resp[0]["rookie_year"]) + ", "
+    teamStr += "Location: " + resp[0]["city"] + " " + resp[0]["state_prov"] + ", "
+    teamStr += "Website: " + resp[0]["website"]
+    return [teamStr]
+
 
 def events(msg, number):
     #print("All events for the given season")
