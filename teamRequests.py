@@ -20,7 +20,8 @@ def basicInfo(msg, number):
     teamStr += resp[0]["team_name_short"] + ", "
     teamStr += "Rookie Year: " + str(resp[0]["rookie_year"]) + ", "
     teamStr += "Location: " + resp[0]["city"] + " " + resp[0]["state_prov"] + ", "
-    teamStr += "Website: " + resp[0]["website"]
+    if resp[0]["website"] is not None:
+        teamStr += "Website: " + resp[0]["website"]
     return [teamStr]
 
 
