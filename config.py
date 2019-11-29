@@ -8,3 +8,4 @@ apiHeaders = {'content-type': 'application/json',
 functionsURL = "https://functions.theorangealliance.org/"
 functionsHeaders = {'Authorization': ''}
 adminList = []
+seasonKey = '1920'

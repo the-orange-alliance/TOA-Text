@@ -20,5 +20,3 @@ def sendText(number, msg):
             from_='+972525932576',
             to=str(number)
         )
-
-
