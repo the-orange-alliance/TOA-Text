@@ -51,7 +51,7 @@ def optInOut(splitParts, userNum):
     elif "start" in splitParts:
         refDB.child(userNum).update({'opted': True})
         textI.sendText(number, "You have now rejoined TOAText and can use all the features")
-        return False
+        return True
     if not phoneDB[userNum]['opted']:
         print("An opted out user (" + str(number) + ") has tried to make a request")
         return True
