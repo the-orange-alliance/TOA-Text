@@ -34,13 +34,13 @@ def help(msg, number):
         "clearLive": "removes all users from the specified live event",
         "massMsg": "messages all TOAText users still opted in"
     }
-    #print("Help")
     def respond_by_command(descriptions, splitParts, number):
         for command, description in descriptions.items():
             if command in splitParts:
                 return [str(command + ' - ' + description)]
         return False
-    if 'help' in msg or '?' in msg or 'sendhelp' in msg:
+    if 'help' in msg or '?' in msg or 'sendhelp' in msg or 'help' in msg:
+        del msg[msg.index('help')]
         sent = False
         if number in config.adminList:
             sent = respond_by_command(admin_command_descriptions, msg, number)
@@ -65,6 +65,7 @@ def help(msg, number):
             helpList.append("Team commands - "+ keyStr[:-2])
             helpList.append("Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             return helpList
+        return sent
     return False
 
 def about(msg, number):
