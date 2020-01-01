@@ -7,13 +7,16 @@ import teamRequests as tR
 import adminRequests as aR
 import twilioInterface as textI
 import firebase
+import config
 
 def checkTeam(msg, number):
     splitMsg = parseMessage(msg)
     if firebase.optInOut(splitMsg,number):
         return
     response = False
-    functList = [adminRequests,nonTeamRequests,teamRequests]
+    functList = [nonTeamRequests,teamRequests]
+    if number in config.adminList:
+        functList.append(adminRequests)
     for funct in functList:
         response = funct(splitMsg, number)
         if response is not False:
