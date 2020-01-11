@@ -60,7 +60,7 @@ def newLiveAlerts(): #Captures generic match info
     if config.webhookKey == request.headers.get('webhookKey') or request.environ['REMOTE_ADDR'] == "127.0.0.1":
         matchInfo = request.get_json(force=True)
         print(matchInfo)
-        if matchInfo['message_type'] != "match_scored":
+        if matchInfo['message_type'] != "team_match_scored":
             return 'wrong_type'
         t = newAlert(matchInfo['message_data']['match_key'], matchInfo)
         t.start()

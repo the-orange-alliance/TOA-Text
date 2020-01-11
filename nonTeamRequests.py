@@ -1,6 +1,7 @@
 #External imports
 import random as rand
 import requests
+from firebase_admin import db
 
 #Internal imports
 import config
@@ -101,6 +102,45 @@ def pickupLines(msg, number):
 def addLive(msg, number):
     #print("Add live")
     if 'addlive' in msg:
+        liveMatchKey = ""
+        teamKey = ""
+        for segment in msg:
+            if str(config.seasonKey + "-") in segment:
+                liveMatchKey = segment
+                break
+        else:
+            return ["No valid event key detected"]
+        for segment in msg:
+            if str(segment).isdigit():
+                teamkey = segment
+                break
+        refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
+        if number[1:] in eventDB:
+            usersDB = db.reference('liveEvents/' + str(liveMatchKey).upper() + "/" + str(number[1:]))
+            infoDB = usersDB.order_by_key().get()
+            if teamKey == "":
+                if infoDB["global"]:
+                    usersDB.update({"global": False})
+                else:
+                    usersDB.update({"global": True})
+            else:
+                try:
+                    if infoDB[teamKey]:
+                        usersDB.update({teamKey: False})
+                    else:
+                        usersDB.update({teamKey: True})
+                except AttributeError:
+                    usersDB.update({teamKey: True})
+        elif number[1:] not in eventDB:
+            if teamKey == "":
+                refDB.child(str(number[1:])).set({"global": True})
+            else:
+                refDB.child(str(number[1:])).set({"global": False, teamKey: True})
+            return ["You have been added to the live scoring alerts. Send addLive and the event key again to be removed", "The Orange Alliance is NOT responsible for any missed matches. Please be responsible"]
         return ["This command is currently a WIP"]
     return False
 
