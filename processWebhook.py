@@ -1,0 +1,2 @@
+def liveAlerts():
+    return True
