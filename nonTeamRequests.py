@@ -112,7 +112,7 @@ def addLive(msg, number):
             return ["No valid event key detected"]
         for segment in msg:
             if str(segment).isdigit():
-                teamkey = segment
+                teamKey = segment
                 break
         refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
         try:
@@ -125,23 +125,31 @@ def addLive(msg, number):
             if teamKey == "":
                 if infoDB["global"]:
                     usersDB.update({"global": False})
+                    return ["You have been removed from recieving alerts for every match"]
                 else:
                     usersDB.update({"global": True})
+                    return ["You have been added to recieving alerts for every match"]
             else:
                 try:
                     if infoDB[teamKey]:
                         usersDB.update({teamKey: False})
+                        return ["You are now no longer following that team"]
                     else:
                         usersDB.update({teamKey: True})
+                        return ["You are now following that team"]
                 except AttributeError:
                     usersDB.update({teamKey: True})
+                    return ["You are now following that team"]
+            return [
+                "You have been added to the live scoring alerts. Send addLive and the event key again to be removed",
+                "The Orange Alliance is NOT responsible for any missed matches. Please be responsible"]
         elif number[1:] not in eventDB:
             if teamKey == "":
                 refDB.child(str(number[1:])).set({"global": True})
             else:
                 refDB.child(str(number[1:])).set({"global": False, teamKey: True})
             return ["You have been added to the live scoring alerts. Send addLive and the event key again to be removed", "The Orange Alliance is NOT responsible for any missed matches. Please be responsible"]
-        return ["This command is currently a WIP"]
+        return ["There was an error adding you to this live event"]
     return False
 
 def streams(msg, number):
