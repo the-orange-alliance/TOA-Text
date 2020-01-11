@@ -11,7 +11,7 @@ def liveAlerts(alertJson):
     matchInfo = alertJson
     refDB = db.reference('liveEvents')
     eventsDB = refDB.order_by_key().get()
-    userMsg += str(matchInfo['message_data']["event_data"])
+    userMsg += str(matchInfo['message_data']["event_key"]) + " "
     if int(matchInfo['message_data']["red_score"]) > int(matchInfo['message_data']["blue_score"]):
         userMsg += str(matchInfo['message_data']["match_name"]) + " went to the red alliance! "
     elif int(matchInfo['message_data']["red_score"]) < int(matchInfo['message_data']["blue_score"]):
