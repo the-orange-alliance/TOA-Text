@@ -31,26 +31,28 @@ def liveAlerts(alertJson):
             blueList.append(int(personR.json()[i]["team_key"]))
     userMsg += str(matchInfo['message_data']["red_score"]) + " red " + str(redList) + ", "
     userMsg += str(matchInfo['message_data']["blue_score"]) + " blue " + str(blueList) + " "
-    for userNum in eventsDB[matchInfo['message_data']["event_key"]]:
-        savedInfo = eventsDB[matchInfo['message_data']["event_key"]][userNum]
-        if savedInfo['global'] and len(savedInfo) == 1:
-            textI.sendText("+" + userNum, userMsg)
-        elif savedInfo['global']:
-            for teams in savedInfo.keys():
-                if teams == 'global':
-                    continue
-                try:
-                    if int(teams) in redList or int(teams) in blueList:
+    if matchInfo['message_data']['match_key'] not in config.recievedMatchKeys:
+        config.recievedMatchKeys.append(matchInfo['message_data']['match_key'])
+        for userNum in eventsDB[matchInfo['message_data']["event_key"]]:
+            savedInfo = eventsDB[matchInfo['message_data']["event_key"]][userNum]
+            if savedInfo['global'] and len(savedInfo) == 1:
+                textI.sendText("+" + userNum, userMsg)
+            elif savedInfo['global']:
+                for teams in savedInfo.keys():
+                    if teams == 'global':
+                        continue
+                    try:
+                        if int(teams) in redList or int(teams) in blueList:
+                            textI.sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
+                            break
+                    except:
+                        break
+                else:
+                    textI.sendText("+" + userNum, userMsg)
+            elif not savedInfo['global'] and len(savedInfo) > 1:
+                for teams in savedInfo.keys():
+                    if teams == 'global':
+                        continue
+                    if teams in redList or teams in blueList:
                         textI.sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
                         break
-                except:
-                    break
-            else:
-                textI.sendText("+" + userNum, userMsg)
-        elif not savedInfo['global'] and len(savedInfo) > 1:
-            for teams in savedInfo.keys():
-                if teams == 'global':
-                    continue
-                if teams in redList or teams in blueList:
-                    textI.sendText("+" + userNum, "[Team " + str(teams) + " Alert] " + userMsg)
-                    break
