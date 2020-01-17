@@ -137,7 +137,7 @@ def addLive(msg, number):
                     else:
                         usersDB.update({teamKey: True})
                         return ["You are now following that team"]
-                except AttributeError:
+                except:
                     usersDB.update({teamKey: True})
                     return ["You are now following that team"]
             return [
