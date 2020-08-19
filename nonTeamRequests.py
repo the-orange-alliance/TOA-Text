@@ -1,6 +1,7 @@
 #External imports
 import random as rand
 import requests
+from firebase_admin import db
 
 #Internal imports
 import config
@@ -34,13 +35,13 @@ def help(msg, number):
         "clearLive": "removes all users from the specified live event",
         "massMsg": "messages all TOAText users still opted in"
     }
-    #print("Help")
     def respond_by_command(descriptions, splitParts, number):
         for command, description in descriptions.items():
             if command in splitParts:
                 return [str(command + ' - ' + description)]
         return False
-    if 'help' in msg or '?' in msg or 'sendhelp' in msg:
+    if 'help' in msg or '?' in msg or 'sendhelp' in msg or 'help' in msg:
+        del msg[msg.index('help')]
         sent = False
         if number in config.adminList:
             sent = respond_by_command(admin_command_descriptions, msg, number)
@@ -65,6 +66,7 @@ def help(msg, number):
             helpList.append("Team commands - "+ keyStr[:-2])
             helpList.append("Begin text with team number and then spaces or : to separate commands. Send a team number with nothing else to be provided a brief overview")
             return helpList
+        return sent
     return False
 
 def about(msg, number):
@@ -100,7 +102,54 @@ def pickupLines(msg, number):
 def addLive(msg, number):
     #print("Add live")
     if 'addlive' in msg:
-        return ["This command is currently a WIP"]
+        liveMatchKey = ""
+        teamKey = ""
+        for segment in msg:
+            if str(config.seasonKey + "-") in segment:
+                liveMatchKey = segment
+                break
+        else:
+            return ["No valid event key detected"]
+        for segment in msg:
+            if str(segment).isdigit():
+                teamKey = segment
+                break
+        refDB = db.reference('liveEvents/' + str(liveMatchKey).upper())
+        try:
+            eventDB = list(refDB.order_by_key().get().keys())
+        except AttributeError:
+            eventDB = []
+        if number[1:] in eventDB:
+            usersDB = db.reference('liveEvents/' + str(liveMatchKey).upper() + "/" + str(number[1:]))
+            infoDB = usersDB.order_by_key().get()
+            if teamKey == "":
+                if infoDB["global"]:
+                    usersDB.update({"global": False})
+                    return ["You have been removed from recieving alerts for every match"]
+                else:
+                    usersDB.update({"global": True})
+                    return ["You have been added to recieving alerts for every match"]
+            else:
+                try:
+                    if infoDB[teamKey]:
+                        usersDB.update({teamKey: False})
+                        return ["You are now no longer following that team"]
+                    else:
+                        usersDB.update({teamKey: True})
+                        return ["You are now following that team"]
+                except:
+                    usersDB.update({teamKey: True})
+                    return ["You are now following that team"]
+            return [
+                "You have been added to the live scoring alerts. Send addLive and the event key again to be removed",
+                "The Orange Alliance is NOT responsible for any missed matches. Please be responsible"]
+        elif number[1:] not in eventDB:
+            if teamKey == "":
+                refDB.child(str(number[1:])).set({"global": True})
+            else:
+                refDB.child(str(number[1:])).set({"global": False, teamKey: True})
+            return ["You have been added to the live scoring alerts. Send addLive and the event key again to be removed", "The Orange Alliance is NOT responsible for any missed matches. Please be responsible"]
+        return ["There was an error adding you to this live event"]
     return False
 
 def streams(msg, number):

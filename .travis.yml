@@ -8,7 +8,7 @@ jobs:
     install: pip3 install twilio flask fuzzywuzzy requests firebase_admin
     script: echo "Temporary holding place until the test suite exists"
   - stage: deploy
-    install: false
+    install: skip
     script: curl $DEPLOY_SCRIPT | bash
     after_success:
     - wget https://raw.githubusercontent.com/DiscordHooks/travis-ci-discord-webhook/master/send.sh

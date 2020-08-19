@@ -7,13 +7,16 @@ import teamRequests as tR
 import adminRequests as aR
 import twilioInterface as textI
 import firebase
+import config
 
 def checkTeam(msg, number):
     splitMsg = parseMessage(msg)
-    if not firebase.optInOut(splitMsg,number):
+    if firebase.optInOut(splitMsg,number):
         return
     response = False
-    functList = [adminRequests,nonTeamRequests,teamRequests]
+    functList = [nonTeamRequests,teamRequests]
+    if number in config.adminList:
+        functList.append(adminRequests)
     for funct in functList:
         response = funct(splitMsg, number)
         if response is not False:
@@ -29,9 +32,9 @@ def checkTeam(msg, number):
         randomNum = rand.randint(0, len(errorList) - 1)
         textI.sendText(number,errorList[randomNum])
     else:
-        for str in response:
-            print(str)
-            textI.sendText(number,str)
+        for sendStr in response:
+            print(sendStr)
+            textI.sendText(number,sendStr)
     return
 
 def teamRequests(msg, number):

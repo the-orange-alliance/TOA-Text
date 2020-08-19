@@ -12,6 +12,19 @@ def basicInfo(msg, number):
             break
     else:
         return False
+    r = requests.get(config.apiURL + "team/" + team,
+                     headers=config.apiHeaders)
+    resp = r.json()
+    teamStr = ''
+    teamStr += str(resp[0]["team_number"]) + " - "
+    teamStr += resp[0]["team_name_short"] + ", "
+    teamStr += "Rookie Year: " + str(resp[0]["rookie_year"]) + ", "
+    teamStr += "Location: " + resp[0]["city"] + " " + resp[0]["state_prov"] + ", "
+    if resp[0]["website"] is not None:
+        teamStr += "Website: " + resp[0]["website"]
+    else:
+        teamStr = teamStr[:-2]
+    return [teamStr]
 
 def events(msg, number):
     #print("All events for the given season")
@@ -44,7 +57,8 @@ def awards(msg, number):
             return False
         r = requests.get(config.apiURL + "team/" + team + "/awards/" + config.seasonKey,
                          headers=config.apiHeaders)
-        advInfoString = "Awards - "
+        advInfoString = ""
+        respList = []
         prevevent_name = ""
         firstRun = True
         addFinal = False
@@ -54,7 +68,9 @@ def awards(msg, number):
             print(r.json()[r.json().index(i)]["award_name"])
             eventr = requests.get(config.apiURL + "event/" + r.json()[r.json().index(i)]["event_key"], headers=config.apiHeaders)
             if prevevent_name != eventr.json()[0]["event_name"] and firstRun == False:
-                advInfoString += r.json()[r.json().index(i)]["award_name"] + " @ " + prevevent_name + " || "
+                advInfoString += r.json()[r.json().index(i)]["award_name"] + " @ " + prevevent_name
+                respList.append(advInfoString)
+                advInfoString = ""
                 prevevent_name = eventr.json()[0]["event_name"]
                 addFinal = False
             else:
@@ -65,7 +81,8 @@ def awards(msg, number):
             # advInfoString += r.json()[r.json().index(i)]["award_name"] + " @ " + eventr.json()[0]["event_name"] + ", "
         if addFinal == True:
             advInfoString = advInfoString[:-2] + " @ " + prevevent_name
-        return [advInfoString]
+            respList.append(advInfoString)
+        return respList
     return False
 
 def matchInfo(msg,number):
